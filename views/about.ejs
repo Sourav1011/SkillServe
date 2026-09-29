@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <%- include('partials/header') %>
+  
+  <div class="container">
+    <div class="page-header">
+      <h1>About Us</h1>
+    </div>
+    
+    <div class="about-content">
+      <section class="about-section">
+        <h2>Who We Are</h2>
+        <p>UrbanClone is your trusted partner for all home service needs. We connect you with verified and experienced professionals who deliver quality services at your doorstep.</p>
+      </section>
+      
+      <section class="about-section">
+        <h2>Our Mission</h2>
+        <p>To make home services accessible, affordable, and reliable for everyone. We strive to provide a seamless booking experience and ensure customer satisfaction with every service.</p>
+      </section>
+      
+      <section class="about-section">
+        <h2>What We Offer</h2>
+        <ul class="features-list">
+          <li><i class="fas fa-check"></i> Wide range of home services</li>
+          <li><i class="fas fa-check"></i> Verified and experienced professionals</li>
+          <li><i class="fas fa-check"></i> Transparent pricing</li>
+          <li><i class="fas fa-check"></i> Easy online booking</li>
+          <li><i class="fas fa-check"></i> 24/7 customer support</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+  
+  <%- include('partials/footer') %>
+  
+  <script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<header class="header">
+  <div class="container">
+    <nav class="navbar">
+      <div class="logo">
+        <a href="/">
+          <i class="fas fa-check-circle"></i>
+          <span>SkillServe</span>
+        </a>
+      </div>
+      
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/contact">Contact</a></li>
+      </ul>
+      
+      <div class="nav-actions">
+        <% if (user) { %>
+          <!-- Notification Bell -->
+          <div class="notification-bell" onclick="window.location.href='/notifications'">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+          </div>
+          
+          <!-- Chat Icon -->
+          <div class="chat-icon" onclick="window.location.href='/chat'">
+            <i class="fas fa-comments"></i>
+            <span class="chat-badge" id="chatBadge" style="display: none;">0</span>
+          </div>
+          
+          <!-- Wallet Icon -->
+          <div class="wallet-icon" onclick="window.location.href='/wallet'">
+            <i class="fas fa-wallet"></i>
+          </div>
+          
+          <div class="user-menu">
+            <img src="<%= user.profileImage %>" alt="<%= user.name %>" class="user-avatar">
+            <span><%= user.name %></span>
+            <div class="dropdown">
+              <% if (user.role === 'admin') { %>
+                <a href="/admin/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a href="/admin/services"><i class="fas fa-cogs"></i> Services</a>
+                <a href="/admin/bookings"><i class="fas fa-calendar"></i> Bookings</a>
+                <a href="/admin/users"><i class="fas fa-users"></i> Users</a>
+                <a href="/coupons"><i class="fas fa-ticket-alt"></i> Coupons</a>
+              <% } else if (user.role === 'professional') { %>
+                <a href="/profile/professional"><i class="fas fa-user"></i> Dashboard</a>
+                <a href="/chat"><i class="fas fa-comments"></i> Messages</a>
+                <a href="/wallet"><i class="fas fa-wallet"></i> Wallet</a>
+              <% } else { %>
+                <a href="/profile/customer"><i class="fas fa-user"></i> Profile</a>
+                <a href="/bookings/my-bookings"><i class="fas fa-calendar-check"></i> My Bookings</a>
+                <a href="/chat"><i class="fas fa-comments"></i> Messages</a>
+                <a href="/wallet"><i class="fas fa-wallet"></i> Wallet</a>
+              <% } %>
+              <a href="/auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+          </div>
+        <% } else { %>
+          <button onclick="openLoginModal()" class="btn btn-outline">Login</button>
+          <button onclick="openRegisterModal()" class="btn btn-primary">Register</button>
+        <% } %>
+      </div>
+      
+      <div class="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </nav>
+  </div>
+</header>

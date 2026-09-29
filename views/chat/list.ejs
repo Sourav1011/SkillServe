@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Skill Serve</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/chatbot.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body {
+      background: #f8f9fa;
+    }
+    .chat-page-header {
+      background: white;
+      padding: 24px 0;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 24px;
+    }
+    .chat-page-header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    .chat-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .chat-sidebar {
+      width: 100%;
+      max-height: 700px;
+      overflow-y: auto;
+    }
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-header {
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .message {
+      margin-bottom: 16px;
+      display: flex;
+    }
+    .message.sent {
+      justify-content: flex-end;
+    }
+    .message-content {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      position: relative;
+    }
+    .message.received .message-content {
+      background: white;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .message.sent .message-content {
+      background: #6366f1;
+      color: white;
+    }
+    .message-time {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-top: 4px;
+      display: block;
+    }
+    .chat-input-area {
+      padding: 20px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      gap: 12px;
+    }
+    #messageInput {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      border-radius: 24px;
+      outline: none;
+    }
+    #sendMessage {
+      padding: 12px 24px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 24px;
+      cursor: pointer;
+    }
+    .chat-item {
+      padding: 20px;
+      border-bottom: 1px solid #f3f4f6;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: white;
+    }
+    .chat-item:hover {
+      background: #f9fafb;
+      transform: translateX(4px);
+    }
+    .chat-item:last-child {
+      border-bottom: none;
+    }
+    .chat-item .profile-pic {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #f3f4f6;
+    }
+    .chat-item-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .chat-item-name {
+      font-weight: 600;
+      font-size: 16px;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+    .chat-item-message {
+      font-size: 14px;
+      color: #6b7280;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .chat-item-badge {
+      background: #6366f1;
+      color: white;
+      border-radius: 12px;
+      min-width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 0 8px;
+    }
+    .empty-chats {
+      padding: 60px 20px;
+      text-align: center;
+    }
+    .empty-chats i {
+      font-size: 64px;
+      color: #e5e7eb;
+      margin-bottom: 16px;
+    }
+    .empty-chats h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+    .empty-chats p {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+    .breadcrumb a {
+      color: #6366f1;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .breadcrumb a:hover {
+      color: #4f46e5;
+    }
+    .breadcrumb span {
+      color: #111827;
+      font-weight: 500;
+    }
+    .quick-nav-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .quick-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      color: #374151;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .quick-nav-btn:hover {
+      background: #f9fafb;
+      border-color: #9ca3af;
+      transform: translateY(-1px);
+    }
+    .quick-nav-btn.primary {
+      background: #6366f1;
+      color: white;
+      border-color: #6366f1;
+    }
+    .quick-nav-btn.primary:hover {
+      background: #4f46e5;
+      border-color: #4f46e5;
+    }
+    #typingIndicator {
+      font-size: 13px;
+      color: #666;
+      padding: 8px 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <%- include('../partials/header') %>
+
+  <div class="chat-page-header">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="/"><i class="fas fa-home"></i> Home</a>
+        <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+        <span>My Chats</span>
+      </div>
+      <h1><%= title %></h1>
+      <div class="quick-nav-buttons">
+        <% if (userRole === 'professional') { %>
+          <a href="/profile/professional" class="quick-nav-btn primary">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+          </a>
+          <a href="/bookings/my-bookings" class="quick-nav-btn">
+            <i class="fas fa-calendar-check"></i> My Bookings
+          </a>
+          <a href="/wallet" class="quick-nav-btn">
+            <i class="fas fa-wallet"></i> Wallet
+          </a>
+        <% } else { %>
+          <a href="/profile/customer" class="quick-nav-btn primary">
+            <i class="fas fa-user"></i> My Profile
+          </a>
+          <a href="/bookings/my-bookings" class="quick-nav-btn">
+            <i class="fas fa-calendar-check"></i> My Bookings
+          </a>
+          <a href="/services" class="quick-nav-btn">
+            <i class="fas fa-search"></i> Browse Services
+          </a>
+          <a href="/wallet" class="quick-nav-btn">
+            <i class="fas fa-wallet"></i> Wallet
+          </a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="chat-container">
+      <div class="chat-sidebar">
+        <% if (chats.length > 0) { %>
+          <% chats.forEach(chat => { %>
+            <div class="chat-item" onclick="location.href='/chat/<%= chat._id %>'">
+              <div style="display: flex; align-items: center; gap: 16px;">
+                <img src="<%= userRole === 'professional' ? (chat.customer.profileImage || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(chat.customer.name)) : (chat.professional.profileImage || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(chat.professional.name)) %>" 
+                     alt="Profile" 
+                     class="profile-pic">
+                <div class="chat-item-content">
+                  <div class="chat-item-name">
+                    <%= userRole === 'professional' ? chat.customer.name : chat.professional.name %>
+                  </div>
+                  <div class="chat-item-message">
+                    <%= chat.lastMessage || 'No messages yet' %>
+                  </div>
+                </div>
+                <% if((userRole === 'professional' && chat.unreadCount.professional > 0) || 
+                      (userRole === 'customer' && chat.unreadCount.customer > 0)) { %>
+                  <span class="chat-item-badge">
+                    <%= userRole === 'professional' ? chat.unreadCount.professional : chat.unreadCount.customer %>
+                  </span>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="empty-chats">
+            <i class="fas fa-comments"></i>
+            <h3>No conversations yet</h3>
+            <p>Start a conversation by booking a service</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/chatbot-widget.js"></script>
+</body>
+</html>

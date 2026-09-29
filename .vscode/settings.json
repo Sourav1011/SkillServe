@@ -1,0 +1,12 @@
+{
+  "files.associations": {
+    "*.ejs": "ejs"
+  },
+  "emmet.includeLanguages": {
+    "ejs": "html"
+  },
+  "javascript.validate.enable": false,
+  "[ejs]": {
+    "editor.defaultFormatter": "j69.ejs-beautify"
+  }
+}

@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Availability Management | SkillServe Pro</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #2E3192;
+      --primary-dark: #1f2163;
+      --secondary: #00D4FF;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+      --light: #f8f9fa;
+      --dark: #1f2937;
+      --sidebar-width: 260px;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+    }
+
+    .pro-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Professional Sidebar */
+    .pro-sidebar {
+      width: var(--sidebar-width);
+      background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 1000;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    }
+
+    .pro-logo {
+      padding: 2rem 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      text-align: center;
+    }
+
+    .pro-logo h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .pro-logo p {
+      font-size: 0.875rem;
+      opacity: 0.8;
+    }
+
+    .pro-nav {
+      padding: 1rem 0;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 0.875rem 1.5rem;
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      transition: all 0.3s;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border-left-color: var(--secondary);
+    }
+
+    .nav-item.active {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border-left-color: var(--secondary);
+    }
+
+    .nav-item i {
+      width: 20px;
+      margin-right: 0.875rem;
+      font-size: 1.1rem;
+    }
+
+    /* Main Content */
+    .pro-main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 2rem;
+    }
+
+    .page-header {
+      margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+      color: var(--dark);
+      margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+      color: #6b7280;
+      font-size: 1rem;
+    }
+
+    /* Availability Card */
+    .availability-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+
+    .availability-card-header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .availability-card-header h2 {
+      font-size: 1.25rem;
+      color: var(--dark);
+      margin: 0;
+    }
+
+    .availability-card-body {
+      padding: 2rem;
+    }
+
+    /* Toggle Switch */
+    .availability-toggle-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      background: linear-gradient(135deg, rgba(46, 49, 146, 0.05), rgba(0, 212, 255, 0.05));
+      border-radius: 8px;
+      margin-bottom: 2rem;
+    }
+
+    .toggle-label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .toggle-label h3 {
+      font-size: 1.125rem;
+      color: var(--dark);
+      margin: 0;
+    }
+
+    .toggle-label p {
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin: 0;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--success);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    /* Working Days */
+    .working-days-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .day-checkbox {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .day-checkbox:hover {
+      border-color: var(--primary);
+      background: rgba(46, 49, 146, 0.05);
+    }
+
+    .day-checkbox.checked {
+      border-color: var(--primary);
+      background: rgba(46, 49, 146, 0.1);
+    }
+
+    .day-checkbox input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-right: 0.75rem;
+      cursor: pointer;
+    }
+
+    /* Time Slots */
+    .time-slot-input {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .time-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .time-input-group label {
+      font-weight: 600;
+      color: var(--dark);
+      font-size: 0.95rem;
+    }
+
+    .time-input-group input {
+      padding: 0.75rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+
+    .time-input-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(46, 49, 146, 0.1);
+    }
+
+    /* Max Bookings */
+    .max-bookings-input {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .max-bookings-input label {
+      font-weight: 600;
+      color: var(--dark);
+      font-size: 0.95rem;
+      min-width: 200px;
+    }
+
+    .max-bookings-input input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      max-width: 200px;
+    }
+
+    /* Block Dates */
+    .block-date-section {
+      background: #fef3c7;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border-left: 4px solid var(--warning);
+      margin-bottom: 2rem;
+    }
+
+    .block-date-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 1rem;
+      align-items: end;
+    }
+
+    .block-date-form input {
+      padding: 0.75rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+
+    .btn-block-date {
+      padding: 0.75rem 1.5rem;
+      background: var(--warning);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s;
+    }
+
+    .btn-block-date:hover {
+      background: #d97706;
+    }
+
+    .blocked-dates-list {
+      margin-top: 1.5rem;
+    }
+
+    .blocked-date-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.875rem;
+      background: white;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+    }
+
+    .blocked-date-info {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .btn-unblock {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.3s;
+    }
+
+    .btn-unblock:hover {
+      background: #dc2626;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      padding: 0.875rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(46, 49, 146, 0.3);
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <!-- Hidden user data for Socket.IO -->
+  <div id="userData" data-user-id="<%= user._id %>" data-user-role="<%= user.role %>" style="display: none;"></div>
+
+  <div class="pro-container">
+    <!-- Professional Sidebar -->
+    <div class="pro-sidebar">
+      <div class="pro-logo">
+        <h2><i class="fas fa-user-tie"></i> SkillServe Pro</h2>
+        <p>Professional Portal</p>
+      </div>
+
+      <nav class="pro-nav">
+        <a href="/profile/professional" class="nav-item">
+          <i class="fas fa-th-large"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="/profile/professional/bookings" class="nav-item">
+          <i class="fas fa-calendar-check"></i>
+          <span>My Bookings</span>
+        </a>
+        <a href="/profile/professional/earnings" class="nav-item">
+          <i class="fas fa-rupee-sign"></i>
+          <span>Earnings</span>
+        </a>
+        <a href="/profile/professional/settings" class="nav-item">
+          <i class="fas fa-user-cog"></i>
+          <span>Profile Settings</span>
+        </a>
+        <a href="/profile/professional/availability" class="nav-item active">
+          <i class="fas fa-clock"></i>
+          <span>Availability</span>
+        </a>
+        <a href="/profile/professional/reviews" class="nav-item">
+          <i class="fas fa-star"></i>
+          <span>Reviews</span>
+        </a>
+        <a href="/" class="nav-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+          <i class="fas fa-arrow-left"></i>
+          <span>Back to Site</span>
+        </a>
+        <a href="/auth/logout" class="nav-item">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="pro-main">
+      <div class="page-header">
+        <h1><i class="fas fa-clock"></i> Availability Management</h1>
+        <p>Manage your working hours and availability</p>
+      </div>
+
+      <!-- Availability Status -->
+      <div class="availability-card">
+        <div class="availability-card-header">
+          <h2><i class="fas fa-toggle-on"></i> Availability Status</h2>
+        </div>
+        <div class="availability-card-body">
+          <div class="availability-toggle-section">
+            <div class="toggle-label">
+              <h3>I'm Available for Bookings</h3>
+              <p>Toggle to accept or pause new booking requests</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="availabilityToggle" <%= user.availability?.isAvailable ? 'checked' : '' %>>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Working Days -->
+      <div class="availability-card">
+        <div class="availability-card-header">
+          <h2><i class="fas fa-calendar-week"></i> Working Days</h2>
+        </div>
+        <div class="availability-card-body">
+          <p style="color: #6b7280; margin-bottom: 1.5rem;">Select the days you're available to work</p>
+          <div class="working-days-grid">
+            <% const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']; %>
+            <% days.forEach(function(day) { %>
+              <label class="day-checkbox <%= user.availability?.workingDays?.includes(day) ? 'checked' : '' %>">
+                <input type="checkbox" name="workingDays" value="<%= day %>" 
+                       <%= user.availability?.workingDays?.includes(day) ? 'checked' : '' %>
+                       onchange="this.parentElement.classList.toggle('checked', this.checked)">
+                <span><%= day %></span>
+              </label>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Working Hours -->
+      <div class="availability-card">
+        <div class="availability-card-header">
+          <h2><i class="fas fa-clock"></i> Working Hours</h2>
+        </div>
+        <div class="availability-card-body">
+          <p style="color: #6b7280; margin-bottom: 1.5rem;">Set your daily working hours</p>
+          <div class="time-slot-input">
+            <div class="time-input-group">
+              <label for="startTime">Start Time</label>
+              <input type="time" id="startTime" name="startTime" 
+                     value="<%= user.availability?.timeSlots?.[0]?.start || '09:00' %>">
+            </div>
+            <div class="time-input-group">
+              <label for="endTime">End Time</label>
+              <input type="time" id="endTime" name="endTime" 
+                     value="<%= user.availability?.timeSlots?.[0]?.end || '18:00' %>">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Max Bookings Per Day -->
+      <div class="availability-card">
+        <div class="availability-card-header">
+          <h2><i class="fas fa-list-ol"></i> Booking Capacity</h2>
+        </div>
+        <div class="availability-card-body">
+          <div class="max-bookings-input">
+            <label for="maxBookings">Maximum bookings per day:</label>
+            <input type="number" id="maxBookings" name="maxBookings" min="1" max="20" 
+                   value="<%= user.availability?.maxBookingsPerDay || 5 %>">
+          </div>
+        </div>
+      </div>
+
+      <!-- Block Specific Dates -->
+      <div class="availability-card">
+        <div class="availability-card-header">
+          <h2><i class="fas fa-ban"></i> Block Specific Dates</h2>
+        </div>
+        <div class="availability-card-body">
+          <div class="block-date-section">
+            <h3 style="margin-bottom: 1rem; color: var(--dark);">
+              <i class="fas fa-exclamation-triangle"></i> Block Unavailable Dates
+            </h3>
+            <div class="block-date-form">
+              <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Select Date</label>
+                <input type="date" id="blockDate" min="<%= new Date().toISOString().split('T')[0] %>">
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Reason (Optional)</label>
+                <input type="text" id="blockReason" placeholder="e.g., Personal leave">
+              </div>
+              <button type="button" class="btn-block-date" onclick="blockDate()">
+                <i class="fas fa-plus-circle"></i> Block Date
+              </button>
+            </div>
+
+            <% if (user.availability?.blockedDates && user.availability.blockedDates.length > 0) { %>
+              <div class="blocked-dates-list">
+                <h4 style="margin-bottom: 1rem; color: var(--dark);">Blocked Dates:</h4>
+                <% user.availability.blockedDates.forEach(function(blockedDate) { %>
+                  <div class="blocked-date-item" data-date-id="<%= blockedDate._id %>">
+                    <div class="blocked-date-info">
+                      <strong><%= new Date(blockedDate.date).toLocaleDateString() %></strong>
+                      <span style="color: #6b7280;"><%= blockedDate.reason || 'Not available' %></span>
+                    </div>
+                    <button type="button" class="btn-unblock" onclick="unblockDate('<%= blockedDate._id %>')">
+                      <i class="fas fa-times"></i> Remove
+                    </button>
+                  </div>
+                <% }); %>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Button -->
+      <div class="form-actions">
+        <button type="button" class="btn-primary" onclick="saveAvailability()">
+          <i class="fas fa-save"></i>
+          Save Availability Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Toggle availability
+    document.getElementById('availabilityToggle').addEventListener('change', async function(e) {
+      const isAvailable = e.target.checked;
+      
+      try {
+        const response = await fetch('/profile/toggle-availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isAvailable })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          showToast(`You are now ${isAvailable ? 'available' : 'unavailable'} for bookings`, 'success');
+        } else {
+          e.target.checked = !isAvailable;
+          showToast('Failed to update availability', 'error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        e.target.checked = !isAvailable;
+        showToast('Failed to update availability', 'error');
+      }
+    });
+
+    // Save availability settings
+    async function saveAvailability() {
+      try {
+        const workingDays = Array.from(document.querySelectorAll('input[name="workingDays"]:checked'))
+          .map(cb => cb.value);
+        
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;
+        const maxBookingsPerDay = parseInt(document.getElementById('maxBookings').value);
+        
+        if (workingDays.length === 0) {
+          showToast('Please select at least one working day', 'error');
+          return;
+        }
+        
+        const response = await fetch('/profile/professional/availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            workingDays,
+            timeSlots: [{ start: startTime, end: endTime, available: true }],
+            maxBookingsPerDay
+          })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          showToast('Availability settings saved successfully!', 'success');
+        } else {
+          showToast(data.message || 'Failed to save settings', 'error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showToast('Failed to save settings', 'error');
+      }
+    }
+
+    // Block date
+    async function blockDate() {
+      const dateInput = document.getElementById('blockDate');
+      const reasonInput = document.getElementById('blockReason');
+      
+      if (!dateInput.value) {
+        showToast('Please select a date to block', 'error');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/profile/professional/availability/block-date', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: dateInput.value,
+            reason: reasonInput.value || 'Not available'
+          })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          showToast('Date blocked successfully!', 'success');
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          showToast(data.message || 'Failed to block date', 'error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showToast('Failed to block date', 'error');
+      }
+    }
+
+    // Unblock date
+    async function unblockDate(dateId) {
+      if (!confirm('Remove this blocked date?')) return;
+      
+      try {
+        const response = await fetch(`/profile/professional/availability/block-date/${dateId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          showToast('Blocked date removed!', 'success');
+          document.querySelector(`[data-date-id="${dateId}"]`).remove();
+        } else {
+          showToast(data.message || 'Failed to remove blocked date', 'error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showToast('Failed to remove blocked date', 'error');
+      }
+    }
+
+    function showToast(message, type) {
+      if (window.showToast) {
+        window.showToast(message, type);
+      } else {
+        alert(message);
+      }
+    }
+  </script>
+
+  <%- include('../../partials/footer') %>
+</body>
+</html>

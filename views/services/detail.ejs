@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= service.name %> | SkillServe</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+  
+  <!-- Breadcrumb -->
+  <div class="breadcrumb-container">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="/">Home</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="/services"><%= service.category %></a>
+        <i class="fas fa-chevron-right"></i>
+        <span><%= service.name %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Service Detail -->
+  <section class="service-detail-section">
+    <div class="container">
+      <div class="detail-grid">
+        <!-- Main Content -->
+        <div class="detail-main">
+          <!-- Image Carousel -->
+          <div class="image-carousel">
+            <div class="carousel-main">
+              <img src="<%= service.image || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800' %>" alt="<%= service.name %>" id="mainImage">
+              <button class="carousel-nav prev" onclick="prevImage()"><i class="fas fa-chevron-left"></i></button>
+              <button class="carousel-nav next" onclick="nextImage()"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="carousel-thumbnails">
+              <img src="<%= service.image || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=200' %>" class="thumbnail active" onclick="changeImage(0)">
+              <img src="https://images.unsplash.com/photo-1527515862127-a4fc05baf7a5?w=200" class="thumbnail" onclick="changeImage(1)">
+              <img src="https://images.unsplash.com/photo-1542744095-fcf48d80b0fd?w=200" class="thumbnail" onclick="changeImage(2)">
+              <img src="https://images.unsplash.com/photo-1527515545081-5db817172677?w=200" class="thumbnail" onclick="changeImage(3)">
+            </div>
+          </div>
+
+          <!-- Service Info -->
+          <div class="service-info-card">
+            <div class="service-header-info">
+              <h1 class="service-detail-title"><%= service.name %></h1>
+              <div class="service-rating-detail">
+                <i class="fas fa-star"></i>
+                <span class="rating-num"><%= service.rating || 4.8 %></span>
+                <span class="rating-text">(<%= service.reviewCount || Math.floor(Math.random() * 5000) + 500 %> reviews)</span>
+              </div>
+            </div>
+
+            <div class="price-section">
+              <span class="price-label">Starting from</span>
+              <span class="base-price" id="basePrice">₹<%= service.price %></span>
+            </div>
+
+            <div class="service-description-section">
+              <h3>About This Service</h3>
+              <p><%= service.description %></p>
+            </div>
+
+            <!-- What's Included -->
+            <div class="whats-included-section">
+              <h3>What's Included</h3>
+              <ul class="included-list">
+                <% if (service.features && service.features.length > 0) { %>
+                  <% service.features.forEach(feature => { %>
+                    <li><i class="fas fa-check-circle"></i> <%= feature %></li>
+                  <% }); %>
+                <% } else { %>
+                  <li><i class="fas fa-check-circle"></i> Professional service</li>
+                  <li><i class="fas fa-check-circle"></i> All tools & equipment</li>
+                  <li><i class="fas fa-check-circle"></i> Expert professionals</li>
+                  <li><i class="fas fa-check-circle"></i> Satisfaction guarantee</li>
+                <% } %>
+              </ul>
+            </div>
+
+            <!-- Add-ons -->
+            <div class="addons-section">
+              <h3>Add-ons (Optional)</h3>
+              <div class="addon-list">
+                <label class="addon-item">
+                  <input type="checkbox" class="addon-checkbox" data-price="150" onchange="updateTotalPrice()">
+                  <div class="addon-content">
+                    <div class="addon-info">
+                      <span class="addon-name">Premium Materials</span>
+                      <span class="addon-desc">High-quality branded materials</span>
+                    </div>
+                    <span class="addon-price">+₹150</span>
+                  </div>
+                </label>
+
+                <label class="addon-item">
+                  <input type="checkbox" class="addon-checkbox" data-price="200" onchange="updateTotalPrice()">
+                  <div class="addon-content">
+                    <div class="addon-info">
+                      <span class="addon-name">Express Service</span>
+                      <span class="addon-desc">Get it done within 24 hours</span>
+                    </div>
+                    <span class="addon-price">+₹200</span>
+                  </div>
+                </label>
+
+                <label class="addon-item">
+                  <input type="checkbox" class="addon-checkbox" data-price="100" onchange="updateTotalPrice()">
+                  <div class="addon-content">
+                    <div class="addon-info">
+                      <span class="addon-name">Extended Warranty</span>
+                      <span class="addon-desc">6 months warranty coverage</span>
+                    </div>
+                    <span class="addon-price">+₹100</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Time Duration -->
+            <div class="duration-section">
+              <i class="fas fa-clock"></i>
+              <span>Estimated Duration: <strong><%= service.duration || 60 %> minutes</strong></span>
+            </div>
+          </div>
+
+          <!-- Reviews Section -->
+          <div class="reviews-section">
+            <h3>Customer Reviews</h3>
+            <div class="reviews-summary">
+              <div class="rating-overview">
+                <span class="avg-rating"><%= service.rating || 4.8 %></span>
+                <div class="stars-large">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star-half-alt"></i>
+                </div>
+                <span class="total-reviews"><%= service.reviewCount || 2543 %> reviews</span>
+              </div>
+            </div>
+
+            <div class="reviews-list">
+              <div class="review-card">
+                <div class="review-header">
+                  <img src="https://ui-avatars.com/api/?name=John+Doe&background=2E3192&color=fff" alt="User" class="review-avatar">
+                  <div>
+                    <strong>John Doe</strong>
+                    <div class="review-stars">
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                    </div>
+                  </div>
+                </div>
+                <p class="review-text">Excellent service! The professional was on time and did a fantastic job. Highly recommended!</p>
+                <span class="review-date">2 days ago</span>
+              </div>
+
+              <div class="review-card">
+                <div class="review-header">
+                  <img src="https://ui-avatars.com/api/?name=Sarah+Smith&background=2E3192&color=fff" alt="User" class="review-avatar">
+                  <div>
+                    <strong>Sarah Smith</strong>
+                    <div class="review-stars">
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="far fa-star"></i>
+                    </div>
+                  </div>
+                </div>
+                <p class="review-text">Good service overall. Professional and efficient work.</p>
+                <span class="review-date">5 days ago</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar (Price Card) -->
+        <aside class="detail-sidebar">
+          <div class="price-card sticky">
+            <div class="price-card-header">
+              <span class="card-price-label">Total Price</span>
+              <span class="card-total-price" id="totalPrice">₹<%= service.price %></span>
+            </div>
+
+            <div class="price-breakdown" id="priceBreakdown" style="display: none;">
+              <div class="breakdown-item">
+                <span>Base Price</span>
+                <span>₹<%= service.price %></span>
+              </div>
+              <div class="breakdown-addons" id="breakdownAddons"></div>
+            </div>
+
+            <% if (user) { %>
+              <a href="/bookings/wizard/<%= service._id %>" class="btn btn-primary btn-block btn-lg" id="bookNowBtn">
+                <i class="fas fa-calendar-check"></i> Book Now
+              </a>
+            <% } else { %>
+              <button onclick="openLoginModal()" class="btn btn-primary btn-block btn-lg">
+                <i class="fas fa-sign-in-alt"></i> Login to Book
+              </button>
+            <% } %>
+
+            <div class="service-guarantees">
+              <div class="guarantee-item">
+                <i class="fas fa-shield-alt"></i>
+                <span>100% Safe & Secure</span>
+              </div>
+              <div class="guarantee-item">
+                <i class="fas fa-redo"></i>
+                <span>Free Rescheduling</span>
+              </div>
+              <div class="guarantee-item">
+                <i class="fas fa-star"></i>
+                <span>Verified Professionals</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sticky Bottom Bar (Mobile) -->
+  <div class="sticky-bottom-bar">
+    <div class="price-details-mobile">
+      <span class="mobile-price-label">Total</span>
+      <span class="mobile-total-price" id="mobileTotalPrice">₹<%= service.price %></span>
+    </div>
+    <% if (user) { %>
+      <a href="/bookings/wizard/<%= service._id %>" class="btn btn-primary btn-mobile-book">Book Now</a>
+    <% } else { %>
+      <button onclick="openLoginModal()" class="btn btn-primary btn-mobile-book">Login to Book</button>
+    <% } %>
+  </div>
+
+  <style>
+  .breadcrumb-container {
+    background: var(--bg-light);
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .breadcrumb a {
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--primary-color);
+  }
+
+  .breadcrumb i {
+    font-size: 0.7rem;
+  }
+
+  .service-detail-section {
+    padding: 2rem 0 6rem;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2rem;
+  }
+
+  .detail-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* Image Carousel */
+  .image-carousel {
+    background: white;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .carousel-main {
+    position: relative;
+    height: 450px;
+    overflow: hidden;
+  }
+
+  .carousel-main img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .carousel-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+  }
+
+  .carousel-nav:hover {
+    background: var(--primary-color);
+    color: white;
+  }
+
+  .carousel-nav.prev {
+    left: 1rem;
+  }
+
+  .carousel-nav.next {
+    right: 1rem;
+  }
+
+  .carousel-thumbnails {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--bg-light);
+  }
+
+  .thumbnail {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+  }
+
+  .thumbnail:hover,
+  .thumbnail.active {
+    border-color: var(--primary-color);
+  }
+
+  /* Service Info Card */
+  .service-info-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .service-detail-title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--dark);
+  }
+
+  .service-rating-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .service-rating-detail i {
+    color: var(--warning-color);
+    font-size: 1.25rem;
+  }
+
+  .rating-num {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .rating-text {
+    color: var(--text-secondary);
+  }
+
+  .price-section {
+    padding: 1.5rem;
+    background: var(--bg-light);
+    border-radius: var(--radius-md);
+    margin-bottom: 2rem;
+  }
+
+  .price-label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  .base-price {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+
+  .service-description-section,
+  .whats-included-section,
+  .addons-section {
+    margin-bottom: 2rem;
+  }
+
+  .service-description-section h3,
+  .whats-included-section h3,
+  .addons-section h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    color: var(--dark);
+  }
+
+  .service-description-section p {
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .included-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .included-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .included-list i {
+    color: var(--success-color);
+    font-size: 1.125rem;
+  }
+
+  /* Add-ons */
+  .addon-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .addon-item {
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: block;
+  }
+
+  .addon-item:has(input:checked) {
+    border-color: var(--primary-color);
+    background: rgba(46, 49, 146, 0.05);
+  }
+
+  .addon-checkbox {
+    margin-right: 1rem;
+    cursor: pointer;
+  }
+
+  .addon-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .addon-name {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .addon-desc {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .addon-price {
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+
+  .duration-section {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--bg-light);
+    border-radius: var(--radius-sm);
+  }
+
+  .duration-section i {
+    color: var(--primary-color);
+  }
+
+  /* Reviews */
+  .reviews-section {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .reviews-section h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .reviews-summary {
+    margin-bottom: 2rem;
+  }
+
+  .rating-overview {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .avg-rating {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+
+  .stars-large {
+    font-size: 1.5rem;
+    color: var(--warning-color);
+  }
+
+  .total-reviews {
+    color: var(--text-secondary);
+  }
+
+  .reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .review-card {
+    padding: 1.5rem;
+    background: var(--bg-light);
+    border-radius: var(--radius-md);
+  }
+
+  .review-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .review-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+  }
+
+  .review-stars {
+    color: var(--warning-color);
+    font-size: 0.875rem;
+  }
+
+  .review-text {
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+  }
+
+  .review-date {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  /* Sidebar Price Card */
+  .detail-sidebar {
+    height: fit-content;
+  }
+
+  .price-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
+
+  .price-card.sticky {
+    position: sticky;
+    top: 90px;
+  }
+
+  .price-card-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .card-price-label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  .card-total-price {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+
+  .price-breakdown {
+    padding: 1rem;
+    background: var(--bg-light);
+    border-radius: var(--radius-sm);
+    margin-bottom: 1.5rem;
+  }
+
+  .breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+  }
+
+  .btn-lg {
+    padding: 1.25rem;
+    font-size: 1.125rem;
+  }
+
+  .service-guarantees {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .guarantee-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    color: var(--text-secondary);
+  }
+
+  .guarantee-item i {
+    color: var(--success-color);
+  }
+
+  /* Mobile Bottom Bar */
+  .sticky-bottom-bar {
+    display: none;
+  }
+
+  @media (max-width: 968px) {
+    .detail-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .detail-sidebar {
+      display: none;
+    }
+
+    .sticky-bottom-bar {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 1rem;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      z-index: 1000;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .price-details-mobile {
+      flex: 1;
+    }
+
+    .mobile-price-label {
+      display: block;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .mobile-total-price {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .btn-mobile-book {
+      flex-shrink: 0;
+      min-width: 140px;
+    }
+
+    .service-detail-section {
+      padding-bottom: 5rem;
+    }
+  }
+  </style>
+
+  <script>
+  const images = [
+    '<%= service.image || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800" %>',
+    'https://images.unsplash.com/photo-1527515862127-a4fc05baf7a5?w=800',
+    'https://images.unsplash.com/photo-1542744095-fcf48d80b0fd?w=800',
+    'https://images.unsplash.com/photo-1527515545081-5db817172677?w=800'
+  ];
+  let currentImageIndex = 0;
+
+  function changeImage(index) {
+    currentImageIndex = index;
+    document.getElementById('mainImage').src = images[index];
+    document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+      thumb.classList.toggle('active', i === index);
+    });
+  }
+
+  function prevImage() {
+    currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+    changeImage(currentImageIndex);
+  }
+
+  function nextImage() {
+    currentImageIndex = (currentImageIndex + 1) % images.length;
+    changeImage(currentImageIndex);
+  }
+
+  // Price Calculation
+  const basePrice = Number("<%= service.price || 0 %>");
+
+  function updateTotalPrice() {
+    const checkboxes = document.querySelectorAll('.addon-checkbox:checked');
+    let addonTotal = 0;
+    let breakdownHTML = '';
+
+    checkboxes.forEach(checkbox => {
+      const price = parseInt(checkbox.dataset.price);
+      const name = checkbox.parentElement.querySelector('.addon-name').textContent;
+      addonTotal += price;
+      breakdownHTML += `
+        <div class="breakdown-item">
+          <span>${name}</span>
+          <span>₹${price}</span>
+        </div>
+      `;
+    });
+
+    const total = basePrice + addonTotal;
+    
+    document.getElementById('totalPrice').textContent = '₹' + total;
+    document.getElementById('mobileTotalPrice').textContent = '₹' + total;
+    
+    const breakdown = document.getElementById('priceBreakdown');
+    if (addonTotal > 0) {
+      breakdown.style.display = 'block';
+      document.getElementById('breakdownAddons').innerHTML = breakdownHTML;
+    } else {
+      breakdown.style.display = 'none';
+    }
+
+    // Update booking button URL with add-ons
+    const bookBtn = document.getElementById('bookNowBtn');
+    if (bookBtn && checkboxes.length > 0) {
+      const addonIds = Array.from(checkboxes).map(cb => cb.dataset.price).join(',');
+      bookBtn.href = `/bookings/wizard/<%= service._id %>?addons=${addonIds}&total=${total}`;
+    }
+  }
+  </script>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

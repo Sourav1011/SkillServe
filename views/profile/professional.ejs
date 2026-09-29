@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Hidden user data for Socket.IO -->
+  <div id="userData" data-user-id="<%= user._id %>" data-user-role="<%= user.role %>" style="display: none;"></div>
+  
+  <%- include('../partials/header') %>
+
+<div class="professional-dashboard-wrapper">
+  <div class="container">
+    <!-- Profile Header Card -->
+    <div class="profile-header-card">
+      <div class="profile-cover"></div>
+      <div class="profile-header-content">
+        <div class="profile-avatar-section">
+          <div class="avatar-wrapper user-avatar-status">
+            <img src="<%= user.profileImage %>" alt="<%= user.name %>" class="profile-avatar-large">
+            <div class="avatar-badge">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <span class="status-indicator <%= user.isOnline ? 'online' : 'offline' %>" data-user-id="<%= user._id %>"></span>
+          </div>
+          <div class="profile-info">
+            <h1 class="profile-name">
+              <%= user.name %>
+              <span class="availability-toggle">
+                <label class="switch">
+                  <input type="checkbox" id="availabilityToggle" <%= user.availability?.isAvailable ? 'checked' : '' %>>
+                  <span class="slider round"></span>
+                </label>
+                <span id="availabilityText"><%= user.availability?.isAvailable ? 'Available' : 'Not Available' %></span>
+              </span>
+            </h1>
+            <p class="profile-profession">
+              <%= user.profession || 'Professional' %>
+              <% if (user.serviceCategories && user.serviceCategories.length > 0) { %>
+                <span class="service-badges">
+                  <% user.serviceCategories.forEach(function(category) { %>
+                    <span class="service-badge"><%= category %></span>
+                  <% }); %>
+                </span>
+              <% } %>
+            </p>
+            <% if (user.rating > 0) { %>
+              <div class="profile-rating">
+                <div class="stars">
+                  <i class="fas fa-star"></i>
+                  <span class="rating-value"><%= user.rating.toFixed(1) %></span>
+                </div>
+                <span class="reviews-count">(<%= user.totalReviews || 0 %> reviews)</span>
+              </div>
+            <% } %>
+          </div>
+        </div>
+        
+        <div class="profile-stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-briefcase"></i>
+            </div>
+            <div class="stat-content">
+              <h3 class="stat-number"><%= bookings.length %></h3>
+              <p class="stat-label">Total Bookings</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon success">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-content">
+              <h3 class="stat-number"><%= bookings.filter(b => b.status === 'completed').length %></h3>
+              <p class="stat-label">Completed</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon warning">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-content">
+              <h3 class="stat-number"><%= bookings.filter(b => b.status === 'pending' || b.status === 'confirmed').length %></h3>
+              <p class="stat-label">Upcoming</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon primary">
+              <i class="fas fa-rupee-sign"></i>
+            </div>
+            <div class="stat-content">
+              <h3 class="stat-number">₹<%= bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.totalAmount || 0), 0) %></h3>
+              <p class="stat-label">Total Earnings</p>
+              <a href="/profile/professional/earnings" style="color: #667eea; font-size: 14px; margin-top: 5px; display: inline-block;">View Details →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard Content Grid -->
+    <div class="dashboard-grid">
+      <!-- Bookings Section -->
+      <div class="dashboard-main">
+        <div class="section-card">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fas fa-calendar-alt"></i>
+              My Bookings
+            </h2>
+            <div class="booking-tabs">
+              <button class="tab-btn active" data-status="all">All</button>
+              <button class="tab-btn" data-status="pending">Pending</button>
+              <button class="tab-btn" data-status="confirmed">Confirmed</button>
+              <button class="tab-btn" data-status="completed">Completed</button>
+            </div>
+          </div>
+          
+          <% if (bookings.length > 0) { %>
+            <div class="bookings-grid">
+              <% bookings.forEach(booking => { %>
+                <div class="booking-item" data-status="<%= booking.status %>" id="booking-<%= booking._id %>">
+                  <div class="booking-item-header">
+                    <div class="service-info">
+                      <div class="service-icon">
+                        <i class="fas fa-tools"></i>
+                      </div>
+                      <div>
+                        <h3 class="service-name"><%= booking.service.name %></h3>
+                        <p class="customer-name">
+                          <i class="fas fa-user"></i>
+                          <%= booking.customer.name %>
+                        </p>
+                      </div>
+                    </div>
+                    <span class="booking-status status-<%= booking.status %>">
+                      <%= booking.status.charAt(0).toUpperCase() + booking.status.slice(1) %>
+                    </span>
+                  </div>
+                  
+                  <div class="booking-item-details">
+                    <div class="detail-row">
+                      <div class="detail-item">
+                        <i class="fas fa-calendar"></i>
+                        <span><%= new Date(booking.scheduledDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %></span>
+                      </div>
+                      <div class="detail-item">
+                        <i class="fas fa-clock"></i>
+                        <span><%= booking.scheduledTime %></span>
+                      </div>
+                    </div>
+                    <div class="detail-row">
+                      <div class="detail-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span><%= booking.address.city || booking.address %></span>
+                      </div>
+                      <div class="detail-item">
+                        <i class="fas fa-rupee-sign"></i>
+                        <span class="amount">₹<%= booking.totalAmount %></span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="booking-item-actions">
+                    <% if (booking.status === 'pending') { %>
+                      <button class="btn-action btn-accept" onclick="acceptBooking('<%= booking._id %>')">
+                        <i class="fas fa-check"></i>
+                        Accept
+                      </button>
+                      <button class="btn-action btn-reject" onclick="rejectBooking('<%= booking._id %>')">
+                        <i class="fas fa-times"></i>
+                        Decline
+                      </button>
+                    <% } else if (booking.status === 'confirmed') { %>
+                      <button class="btn-action btn-complete" onclick="completeBooking('<%= booking._id %>')">
+                        <i class="fas fa-check-circle"></i>
+                        Mark Complete
+                      </button>
+                    <% } %>
+                    <a href="/bookings/<%= booking._id %>" class="btn-view-booking">
+                      View Details
+                      <i class="fas fa-arrow-right"></i>
+                    </a>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div class="empty-state">
+              <div class="empty-icon">
+                <i class="fas fa-calendar-times"></i>
+              </div>
+              <h3>No bookings assigned yet</h3>
+              <p>Your bookings will appear here once customers book your services.</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="dashboard-sidebar">
+        <!-- Update Profile Card -->
+        <div class="section-card">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fas fa-user-edit"></i>
+              Update Profile
+            </h2>
+          </div>
+          
+          <form action="/profile/update" method="POST" enctype="multipart/form-data" class="update-form">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" name="name" value="<%= user.name %>" required class="form-control">
+            </div>
+            
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="tel" name="phone" value="<%= user.phone %>" required class="form-control">
+            </div>
+            
+            <div class="form-group">
+              <label>Profession</label>
+              <input type="text" name="profession" value="<%= user.profession || '' %>" class="form-control">
+            </div>
+            
+            <div class="form-group">
+              <label>Experience (years)</label>
+              <input type="number" name="experience" value="<%= user.experience || 0 %>" min="0" class="form-control">
+            </div>
+            
+            <div class="form-group">
+              <label>Profile Image</label>
+              <div class="file-upload-wrapper">
+                <input type="file" name="profileImage" accept="image/*" id="profileImage" class="file-input">
+                <label for="profileImage" class="file-label">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  <span>Choose File</span>
+                </label>
+              </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block">
+              <i class="fas fa-save"></i>
+              Update Profile
+            </button>
+          </form>
+        </div>
+
+        <!-- Availability Management Card -->
+        <div class="section-card">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fas fa-calendar-check"></i>
+              Availability Settings
+            </h2>
+          </div>
+          
+          <div class="availability-controls">
+            <!-- Quick Toggle -->
+            <div class="availability-toggle-card">
+              <div class="toggle-info">
+                <h3>Accept New Bookings</h3>
+                <p>Toggle to control booking availability</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="availabilityToggle" <%= user.availability.isAvailable ? 'checked' : '' %>>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <!-- Working Days -->
+            <div class="form-group">
+              <label><i class="fas fa-calendar-week"></i> Working Days</label>
+              <div class="days-grid">
+                <% const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']; %>
+                <% days.forEach(day => { %>
+                  <label class="day-checkbox">
+                    <input type="checkbox" name="workingDays" value="<%= day %>" 
+                      <%= user.availability.workingDays.includes(day) ? 'checked' : '' %>>
+                    <span><%= day.substring(0, 3) %></span>
+                  </label>
+                <% }); %>
+              </div>
+            </div>
+
+            <!-- Time Slots -->
+            <div class="form-group">
+              <label><i class="fas fa-clock"></i> Working Hours</label>
+              <div class="time-slot-inputs">
+                <div class="time-input-group">
+                  <label>Start Time</label>
+                  <input type="time" id="startTime" value="09:00" class="form-control">
+                </div>
+                <div class="time-input-group">
+                  <label>End Time</label>
+                  <input type="time" id="endTime" value="18:00" class="form-control">
+                </div>
+              </div>
+            </div>
+
+            <!-- Max Bookings -->
+            <div class="form-group">
+              <label><i class="fas fa-list-ol"></i> Max Bookings Per Day</label>
+              <input type="number" id="maxBookings" value="<%= user.availability.maxBookingsPerDay %>" 
+                min="1" max="50" class="form-control">
+            </div>
+
+            <!-- Block Dates -->
+            <div class="form-group">
+              <label><i class="fas fa-ban"></i> Block Date</label>
+              <div class="block-date-inputs">
+                <input type="date" id="blockDate" class="form-control" min="<%= new Date().toISOString().split('T')[0] %>">
+                <input type="text" id="blockReason" placeholder="Reason (optional)" class="form-control">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="blockDate()">
+                  <i class="fas fa-plus"></i> Block
+                </button>
+              </div>
+            </div>
+
+            <!-- Blocked Dates List -->
+            <% if (user.availability.blockedDates && user.availability.blockedDates.length > 0) { %>
+              <div class="blocked-dates-list">
+                <h4>Blocked Dates</h4>
+                <% user.availability.blockedDates.forEach(blocked => { %>
+                  <div class="blocked-date-item" data-date-id="<%= blocked._id %>">
+                    <div class="blocked-date-info">
+                      <strong><%= new Date(blocked.date).toLocaleDateString('en-IN') %></strong>
+                      <% if (blocked.reason) { %>
+                        <small><%= blocked.reason %></small>
+                      <% } %>
+                    </div>
+                    <button type="button" class="btn-remove" onclick="unblockDate('<%= blocked._id %>')">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                <% }); %>
+              </div>
+            <% } %>
+
+            <!-- Save Button -->
+            <button type="button" class="btn btn-primary btn-block" onclick="saveAvailability()">
+              <i class="fas fa-save"></i>
+              Save Availability
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.professional-dashboard-wrapper {
+  background: var(--bg-light);
+  min-height: 100vh;
+  padding-top: 80px;
+  padding-bottom: 3rem;
+}
+
+.profile-header-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.profile-cover {
+  height: 150px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #5A67D8 100%);
+}
+
+.profile-header-content {
+  padding: 0 2rem 2rem;
+}
+
+.profile-avatar-section {
+  display: flex;
+  gap: 2rem;
+  margin-top: -60px;
+  margin-bottom: 2rem;
+}
+
+.avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.profile-avatar-large {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 5px solid white;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.avatar-badge {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 32px;
+  height: 32px;
+  background: var(--success-color);
+  border-radius: 50%;
+  border: 3px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.875rem;
+}
+
+.profile-info {
+  padding-top: 60px;
+}
+
+.profile-name {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--dark);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.availability-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Toggle Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+}
+
+input:checked + .slider {
+  background-color: var(--success-color);
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+.slider.round {
+  border-radius: 24px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+#availabilityText {
+  color: var(--text-secondary);
+}
+
+input:checked ~ #availabilityText {
+  color: var(--success-color);
+}
+
+.profile-profession {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.service-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.service-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.profile-rating {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stars {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--warning-color);
+  font-size: 1.125rem;
+}
+
+.rating-value {
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.reviews-count {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid var(--border);
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--bg-light);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.stat-icon.success {
+  background: var(--success-color);
+}
+
+.stat-icon.warning {
+  background: var(--warning-color);
+}
+
+.stat-icon.primary {
+  background: var(--primary-color);
+}
+
+.stat-number {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 2rem;
+}
+
+.section-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.section-header {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--dark);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.section-title i {
+  color: var(--primary-color);
+}
+
+.booking-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+  padding: 0.625rem 1.25rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tab-btn:hover {
+  background: var(--bg-light);
+  color: var(--primary-color);
+}
+
+.tab-btn.active {
+  color: var(--primary-color);
+  background: var(--bg-light);
+}
+
+.bookings-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.booking-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.booking-item:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-color: var(--primary-color);
+}
+
+.booking-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.service-info {
+  display: flex;
+  gap: 1rem;
+}
+
+.service-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--bg-light);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.service-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 0.25rem;
+}
+
+.customer-name {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.booking-status {
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-pending {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.status-confirmed {
+  background: #DBEAFE;
+  color: #1E40AF;
+}
+
+.status-completed {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.status-cancelled {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.booking-item-details {
+  margin-bottom: 1rem;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.detail-item i {
+  color: var(--primary-color);
+  width: 16px;
+}
+
+.detail-item .amount {
+  font-weight: 700;
+  color: var(--dark);
+  font-size: 1rem;
+}
+
+.booking-item-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.btn-view-booking {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary-color);
+  color: white;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-view-booking:hover {
+  background: #252A7F;
+  transform: translateX(4px);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-icon {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1.5rem;
+  background: var(--bg-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 3rem;
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  color: var(--dark);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: var(--text-secondary);
+}
+
+.update-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(46, 49, 146, 0.1);
+}
+
+.file-upload-wrapper {
+  position: relative;
+}
+
+.file-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.file-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.file-label:hover {
+  border-color: var(--primary-color);
+  background: var(--bg-light);
+  color: var(--primary-color);
+}
+
+.btn-block {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+}
+
+/* Availability Management Styles */
+.availability-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.availability-toggle-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: var(--radius-md);
+  color: white;
+}
+
+.toggle-info h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.toggle-info p {
+  margin: 0;
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 32px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.3);
+  transition: 0.3s;
+  border-radius: 32px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 24px;
+  width: 24px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(28px);
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+.day-checkbox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.day-checkbox input {
+  display: none;
+}
+
+.day-checkbox span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.75rem 0.5rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.day-checkbox input:checked + span {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.time-slot-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.time-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.time-input-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.block-date-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.5rem;
+  align-items: end;
+}
+
+.blocked-dates-list {
+  padding: 1rem;
+  background: var(--bg-light);
+  border-radius: var(--radius-sm);
+}
+
+.blocked-dates-list h4 {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+.blocked-date-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: white;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.5rem;
+}
+
+.blocked-date-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.blocked-date-info strong {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.blocked-date-info small {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.btn-remove {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.btn-remove:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .profile-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-avatar-section {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .profile-info {
+    padding-top: 1rem;
+  }
+  
+  .profile-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .detail-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Action Buttons Styles */
+.btn-action {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-accept {
+  background: var(--success-color);
+  color: white;
+}
+
+.btn-accept:hover {
+  background: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-reject {
+  background: var(--danger-color);
+  color: white;
+}
+
+.btn-reject:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-complete {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn-complete:hover {
+  background: #1e2578;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 49, 146, 0.3);
+}
+
+.booking-item-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn-view-booking {
+  flex: 1;
+  text-align: center;
+}
+
+/* Toast Notification */
+.toast-notification {
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 9999;
+  animation: slideInRight 0.3s ease;
+  max-width: 400px;
+}
+
+.toast-notification.success {
+  border-left: 4px solid var(--success-color);
+}
+
+.toast-notification.error {
+  border-left: 4px solid var(--danger-color);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+</style>
+
+<script>
+// Booking tabs filtering
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const status = this.dataset.status;
+    
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    
+    document.querySelectorAll('.booking-item').forEach(item => {
+      if (status === 'all') {
+        item.style.display = 'block';
+      } else {
+        item.style.display = item.dataset.status === status ? 'block' : 'none';
+      }
+    });
+  });
+});
+
+// File upload name display
+document.getElementById('profileImage')?.addEventListener('change', function(e) {
+  const fileName = e.target.files[0]?.name || 'Choose File';
+  this.nextElementSibling.querySelector('span').textContent = fileName;
+});
+
+// Toast Notification
+function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = `toast-notification ${type}`;
+  toast.innerHTML = `
+    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" style="font-size: 1.5rem; color: var(--${type === 'success' ? 'success' : 'danger'}-color);"></i>
+    <span>${message}</span>
+  `;
+  
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.animation = 'fadeOut 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// Accept Booking
+function acceptBooking(bookingId) {
+  if (!confirm('Are you sure you want to accept this booking?')) return;
+  
+  fetch(`/bookings/${bookingId}/accept`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showToast('Booking accepted successfully!', 'success');
+      
+      // Update the booking card
+      const bookingCard = document.getElementById(`booking-${bookingId}`);
+      if (bookingCard) {
+        bookingCard.dataset.status = 'confirmed';
+        bookingCard.querySelector('.booking-status').textContent = 'Confirmed';
+        bookingCard.querySelector('.booking-status').className = 'booking-status status-confirmed';
+        
+        // Update action buttons
+        const actionsDiv = bookingCard.querySelector('.booking-item-actions');
+        const viewDetailsBtn = actionsDiv.querySelector('.btn-view-booking');
+        actionsDiv.innerHTML = '';
+        actionsDiv.innerHTML = `
+          <button class="btn-action btn-complete" onclick="completeBooking('${bookingId}')">
+            <i class="fas fa-check-circle"></i>
+            Mark Complete
+          </button>
+        `;
+        actionsDiv.appendChild(viewDetailsBtn);
+      }
+      
+      // Update stats
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      showToast(data.message || 'Failed to accept booking', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showToast('An error occurred. Please try again.', 'error');
+  });
+}
+
+// Reject Booking
+function rejectBooking(bookingId) {
+  if (!confirm('Are you sure you want to decline this booking?')) return;
+  
+  fetch(`/bookings/${bookingId}/reject`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showToast('Booking declined', 'success');
+      
+      // Remove the booking card with animation
+      const bookingCard = document.getElementById(`booking-${bookingId}`);
+      if (bookingCard) {
+        bookingCard.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => {
+          bookingCard.remove();
+          
+          // Check if no bookings left
+          if (document.querySelectorAll('.booking-item').length === 0) {
+            location.reload();
+          }
+        }, 300);
+      }
+    } else {
+      showToast(data.message || 'Failed to decline booking', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showToast('An error occurred. Please try again.', 'error');
+  });
+}
+
+// Complete Booking
+function completeBooking(bookingId) {
+  if (!confirm('Mark this booking as completed?')) return;
+  
+  fetch(`/bookings/${bookingId}/complete`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showToast('Booking marked as completed!', 'success');
+      
+      // Update the booking card
+      const bookingCard = document.getElementById(`booking-${bookingId}`);
+      if (bookingCard) {
+        bookingCard.dataset.status = 'completed';
+        bookingCard.querySelector('.booking-status').textContent = 'Completed';
+        bookingCard.querySelector('.booking-status').className = 'booking-status status-completed';
+        
+        // Remove action buttons except view details
+        const actionsDiv = bookingCard.querySelector('.booking-item-actions');
+        const viewDetailsBtn = actionsDiv.querySelector('.btn-view-booking');
+        actionsDiv.innerHTML = '';
+        actionsDiv.appendChild(viewDetailsBtn);
+      }
+      
+      // Update stats
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      showToast(data.message || 'Failed to complete booking', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showToast('An error occurred. Please try again.', 'error');
+  });
+}
+</script>
+
+<!-- Socket.IO Client -->
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/socket-client.js"></script>
+<script>
+  // Join user room for notifications
+  const userId = '<%= user._id %>';
+  socket.emit('join-user', userId);
+  
+  // Listen for new booking notifications
+  socket.on('new-booking-notification', (data) => {
+    console.log('New booking notification:', data);
+    
+    // Play sound and show notification
+    windowIO.showNotification(
+      `New booking request for ${data.serviceName}! Click to view.`,
+      'success'
+    );
+    
+    // Reload bookings list after 2 seconds
+    setTimeout(() => {
+      location.reload();
+    }, 2000);
+  });
+  
+  // Listen for booking status updates
+  socket.on('status-update', (data) => {
+    console.log('Booking status updated:', data);
+    
+    const bookingCard = document.getElementById(`booking-${data.bookingId}`);
+    if (bookingCard) {
+      const statusBadge = bookingCard.querySelector('.status-badge');
+      if (statusBadge) {
+        statusBadge.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+        statusBadge.className = `status-badge status-${data.status}`;
+      }
+      
+      // Update action buttons based on status
+      const actionsDiv = bookingCard.querySelector('.booking-actions');
+      if (actionsDiv) {
+        if (data.status === 'confirmed') {
+          actionsDiv.innerHTML = `
+            <button onclick="completeBooking('${data.bookingId}')" class="btn-action btn-complete">
+              <i class="fas fa-check-circle"></i> Mark Complete
+            </button>
+          `;
+        } else if (data.status === 'completed') {
+          actionsDiv.innerHTML = `
+            <button class="btn-action btn-view" disabled>
+              <i class="fas fa-check-double"></i> Completed
+            </button>
+          `;
+        }
+      }
+    }
+  });
+  
+  // Listen for general notifications
+  socket.on('notification', (data) => {
+    console.log('Notification received:', data);
+    showToast(data.message, data.type || 'info');
+  });
+
+  // Availability Management Functions
+  
+  // Toggle availability on/off
+  document.getElementById('availabilityToggle')?.addEventListener('change', async function() {
+    try {
+      const response = await fetch('/profile/professional/availability/toggle', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        showToast(data.message, 'success');
+      } else {
+        showToast(data.message || 'Failed to update availability', 'error');
+        this.checked = !this.checked; // Revert toggle
+      }
+    } catch (error) {
+      console.error('Error toggling availability:', error);
+      showToast('Failed to update availability', 'error');
+      this.checked = !this.checked; // Revert toggle
+    }
+  });
+
+  // Save availability settings
+  async function saveAvailability() {
+    try {
+      const workingDays = Array.from(document.querySelectorAll('input[name="workingDays"]:checked'))
+        .map(cb => cb.value);
+      
+      const startTime = document.getElementById('startTime').value;
+      const endTime = document.getElementById('endTime').value;
+      const maxBookingsPerDay = parseInt(document.getElementById('maxBookings').value);
+      
+      if (workingDays.length === 0) {
+        showToast('Please select at least one working day', 'error');
+        return;
+      }
+      
+      if (!startTime || !endTime) {
+        showToast('Please set working hours', 'error');
+        return;
+      }
+      
+      const response = await fetch('/profile/professional/availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workingDays,
+          timeSlots: [{ start: startTime, end: endTime, available: true }],
+          maxBookingsPerDay
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        showToast('Availability updated successfully!', 'success');
+      } else {
+        showToast(data.message || 'Failed to update availability', 'error');
+      }
+    } catch (error) {
+      console.error('Error saving availability:', error);
+      showToast('Failed to save availability', 'error');
+    }
+  }
+
+  // Block a date
+  async function blockDate() {
+    try {
+      const dateInput = document.getElementById('blockDate');
+      const reasonInput = document.getElementById('blockReason');
+      
+      if (!dateInput.value) {
+        showToast('Please select a date to block', 'error');
+        return;
+      }
+      
+      const response = await fetch('/profile/professional/availability/block-date', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: dateInput.value,
+          reason: reasonInput.value || 'Not available'
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        showToast('Date blocked successfully!', 'success');
+        dateInput.value = '';
+        reasonInput.value = '';
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        showToast(data.message || 'Failed to block date', 'error');
+      }
+    } catch (error) {
+      console.error('Error blocking date:', error);
+      showToast('Failed to block date', 'error');
+    }
+  }
+
+  // Unblock a date
+  async function unblockDate(dateId) {
+    try {
+      const response = await fetch(`/profile/professional/availability/block-date/${dateId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        showToast('Blocked date removed!', 'success');
+        document.querySelector(`[data-date-id="${dateId}"]`)?.remove();
+      } else {
+        showToast(data.message || 'Failed to remove blocked date', 'error');
+      }
+    } catch (error) {
+      console.error('Error unblocking date:', error);
+      showToast('Failed to remove blocked date', 'error');
+    }
+  }
+
+  // Toggle availability
+  document.getElementById('availabilityToggle')?.addEventListener('change', async function(e) {
+    const isAvailable = e.target.checked;
+    const availabilityText = document.getElementById('availabilityText');
+    
+    try {
+      const response = await fetch('/profile/toggle-availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAvailable })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        availabilityText.textContent = isAvailable ? 'Available' : 'Not Available';
+        showToast(`You are now ${isAvailable ? 'available' : 'unavailable'} for bookings`, 'success');
+      } else {
+        e.target.checked = !isAvailable; // Revert
+        showToast('Failed to update availability', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating availability:', error);
+      e.target.checked = !isAvailable; // Revert
+      showToast('Failed to update availability', 'error');
+    }
+  });
+
+  // Accept booking
+  async function acceptBooking(bookingId) {
+    if (!confirm('Are you sure you want to accept this booking?')) return;
+    
+    try {
+      const response = await fetch(`/bookings/${bookingId}/accept`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        showToast('Booking accepted successfully!', 'success');
+        const bookingElement = document.getElementById(`booking-${bookingId}`);
+        if (bookingElement) {
+          const statusBadge = bookingElement.querySelector('.booking-status');
+          statusBadge.className = 'booking-status status-confirmed';
+          statusBadge.textContent = 'Confirmed';
+          
+          const actionsDiv = bookingElement.querySelector('.booking-item-actions');
+          actionsDiv.innerHTML = `
+            <button class="btn-action btn-complete" onclick="completeBooking('${bookingId}')">
+              <i class="fas fa-check-circle"></i>
+              Mark Complete
+            </button>
+            <a href="/bookings/${bookingId}" class="btn-view-booking">
+              View Details
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          `;
+        }
+      } else {
+        showToast(data.message || 'Failed to accept booking', 'error');
+      }
+    } catch (error) {
+      console.error('Error accepting booking:', error);
+      showToast('Failed to accept booking', 'error');
+    }
+  }
+
+  // Reject booking
+  async function rejectBooking(bookingId) {
+    if (!confirm('Are you sure you want to decline this booking?')) return;
+    
+    try {
+      const response = await fetch(`/bookings/${bookingId}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        showToast('Booking declined', 'success');
+        const bookingElement = document.getElementById(`booking-${bookingId}`);
+        if (bookingElement) {
+          bookingElement.remove();
+        }
+      } else {
+        showToast(data.message || 'Failed to decline booking', 'error');
+      }
+    } catch (error) {
+      console.error('Error declining booking:', error);
+      showToast('Failed to decline booking', 'error');
+    }
+  }
+
+  // Complete booking
+  async function completeBooking(bookingId) {
+    if (!confirm('Are you sure you want to mark this booking as completed?')) return;
+    
+    try {
+      const response = await fetch(`/bookings/${bookingId}/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        showToast('Booking marked as completed!', 'success');
+        const bookingElement = document.getElementById(`booking-${bookingId}`);
+        if (bookingElement) {
+          const statusBadge = bookingElement.querySelector('.booking-status');
+          statusBadge.className = 'booking-status status-completed';
+          statusBadge.textContent = 'Completed';
+          
+          const actionsDiv = bookingElement.querySelector('.booking-item-actions');
+          actionsDiv.innerHTML = `
+            <a href="/bookings/${bookingId}" class="btn-view-booking">
+              View Details
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          `;
+        }
+      } else {
+        showToast(data.message || 'Failed to complete booking', 'error');
+      }
+    } catch (error) {
+      console.error('Error completing booking:', error);
+      showToast('Failed to complete booking', 'error');
+    }
+  }
+
+  // Socket.IO for real-time booking updates
+  const socket = io();
+  const userData = document.getElementById('userData');
+  if (userData) {
+    const userId = userData.dataset.userId;
+    socket.emit('join-user', userId);
+    
+    socket.on('new-booking-notification', (data) => {
+      console.log('New booking received:', data);
+      
+      // Create enhanced notification
+      const notification = document.createElement('div');
+      notification.className = 'booking-notification-popup';
+      notification.innerHTML = `
+        <div class="notification-header">
+          <i class="fas fa-calendar-check"></i>
+          <strong>New Booking Request!</strong>
+        </div>
+        <div class="notification-body">
+          <p><strong>Customer:</strong> ${data.customerName}</p>
+          <p><strong>Service:</strong> ${data.serviceName}</p>
+          <p><strong>Category:</strong> ${data.serviceCategory}</p>
+          <p><strong>Date:</strong> ${new Date(data.scheduledDate).toLocaleDateString()}</p>
+          <p><strong>Time:</strong> ${data.scheduledTime}</p>
+          <p><strong>Amount:</strong> ₹${data.totalAmount}</p>
+        </div>
+        <div class="notification-actions">
+          <button onclick="location.reload()" class="btn-primary">View Booking</button>
+        </div>
+      `;
+      
+      notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        padding: 1.5rem;
+        max-width: 400px;
+        z-index: 10001;
+        animation: slideInRight 0.4s ease;
+      `;
+      
+      document.body.appendChild(notification);
+      
+      // Play notification sound
+      const audio = new Audio('/sounds/notification.mp3');
+      audio.play().catch(() => {});
+      
+      showToast(`New ${data.serviceCategory} booking from ${data.customerName}!`, 'success');
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.4s ease';
+        setTimeout(() => notification.remove(), 400);
+      }, 10000);
+    });
+    
+    socket.on('status-update', (data) => {
+      console.log('Booking status updated:', data);
+      const bookingElement = document.getElementById(`booking-${data.bookingId}`);
+      if (bookingElement) {
+        const statusBadge = bookingElement.querySelector('.booking-status');
+        if (statusBadge) {
+          statusBadge.className = `booking-status status-${data.status}`;
+          statusBadge.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+        }
+      }
+    });
+  }
+
+  // Toast notification function
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 10000;
+      font-weight: 500;
+      animation: slideIn 0.3s ease;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.animation = 'slideOut 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  // Add CSS animations
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+    .booking-notification-popup {
+      border-left: 4px solid var(--primary-color);
+    }
+    .booking-notification-popup .notification-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.125rem;
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+    }
+    .booking-notification-popup .notification-body {
+      margin-bottom: 1rem;
+    }
+    .booking-notification-popup .notification-body p {
+      margin: 0.5rem 0;
+      font-size: 0.95rem;
+    }
+    .booking-notification-popup .notification-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+  `;
+  document.head.appendChild(style);
+
+</script>
+
+<%- include('../partials/footer') %>
+</body>
+</html>

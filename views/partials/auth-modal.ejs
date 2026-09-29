@@ -1,0 +1,935 @@
+<!-- Login Modal -->
+<div id="loginModal" class="auth-modal">
+  <div class="auth-modal-overlay" onclick="closeLoginModal()"></div>
+  <div class="auth-modal-content">
+    <button class="auth-modal-close" onclick="closeLoginModal()">
+      <i class="fas fa-times"></i>
+    </button>
+    
+    <div class="auth-modal-header">
+      <h2>Welcome Back</h2>
+      <p>Login with your email and password</p>
+    </div>
+    
+    <div class="auth-modal-body">
+      <!-- Email/Password Login Step -->
+      <div id="loginEmailStep" class="auth-step active">
+        <form action="/auth/login" method="POST">
+          <div class="form-group">
+            <label for="loginEmail">Email Address</label>
+            <input 
+              type="email" 
+              id="loginEmail" 
+              name="email" 
+              placeholder="Enter your email"
+              required
+              autocomplete="email"
+              class="form-control"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input 
+              type="password" 
+              id="loginPassword" 
+              name="password" 
+              placeholder="Enter your password"
+              required
+              autocomplete="current-password"
+              class="form-control"
+            >
+          </div>
+          
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <small class="form-hint" style="color: #666;">
+              <strong>Test Accounts:</strong><br>
+              Customer: customer@example.com / customer123<br>
+              Professional: professional@example.com / professional123<br>
+              Admin: admin@skillserve.com / admin123
+            </small>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-block">
+            <i class="fas fa-sign-in-alt"></i> Login
+          </button>
+        </form>
+      </div>
+      
+      <!-- Phone Input Step (Hidden - OTP not available) -->
+      <div id="loginPhoneStep" class="auth-step" style="display: none;">
+        <form id="loginPhoneForm" onsubmit="sendLoginOTP(event)">
+          <div class="form-group">
+            <label for="loginPhone">Phone Number</label>
+            <div class="phone-input-wrapper">
+              <span class="country-code">+91</span>
+              <input 
+                type="tel" 
+                id="loginPhone" 
+                name="phone" 
+                placeholder="Enter 10-digit mobile number"
+                pattern="[0-9]{10}"
+                maxlength="10"
+                autocomplete="tel"
+              >
+            </div>
+            <small class="form-hint">We'll send you a verification code</small>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-block">
+            <span id="loginPhoneBtn">Send OTP</span>
+            <span id="loginPhoneLoader" class="btn-loader" style="display: none;">
+              <i class="fas fa-spinner fa-spin"></i> Sending...
+            </span>
+          </button>
+        </form>
+      </div>
+      
+      <!-- OTP Verification Step -->
+      <div id="loginOtpStep" class="auth-step">
+        <div class="otp-sent-message">
+          <i class="fas fa-mobile-alt"></i>
+          <p>OTP sent to <strong id="loginPhoneDisplay"></strong></p>
+          <button class="change-number-btn" onclick="changeLoginNumber()">
+            <i class="fas fa-edit"></i> Change
+          </button>
+        </div>
+        
+        <form id="loginOtpForm" onsubmit="verifyLoginOTP(event)">
+          <div class="form-group">
+            <label>Enter OTP</label>
+            <div class="otp-input-group">
+              <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="one-time-code" />
+              <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" />
+              <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" />
+              <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" />
+              <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" />
+              <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" />
+            </div>
+          </div>
+          
+          <div class="resend-wrapper">
+            <span id="loginOtpTimer" class="otp-timer">Resend OTP in <strong>30</strong>s</span>
+            <button type="button" id="loginResendBtn" class="resend-btn" onclick="resendLoginOTP()" style="display: none;">
+              Resend OTP
+            </button>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-block">
+            <span id="loginOtpBtn">Verify & Login</span>
+            <span id="loginOtpLoader" class="btn-loader" style="display: none;">
+              <i class="fas fa-spinner fa-spin"></i> Verifying...
+            </span>
+          </button>
+        </form>
+      </div>
+    </div>
+    
+    <div class="auth-modal-footer">
+      <p>New to SkillServe? <a href="#" onclick="switchToRegister(); return false;">Create Account</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- Register Modal -->
+<div id="registerModal" class="auth-modal">
+  <div class="auth-modal-overlay" onclick="closeRegisterModal()"></div>
+  <div class="auth-modal-content">
+    <button class="auth-modal-close" onclick="closeRegisterModal()">
+      <i class="fas fa-times"></i>
+    </button>
+    
+    <div class="auth-modal-header">
+      <h2>Create Account</h2>
+      <p>Join thousands of happy customers</p>
+    </div>
+    
+    <div class="auth-modal-body">
+      <!-- Email/Password Registration -->
+      <div id="registerEmailStep" class="auth-step active">
+        <form action="/auth/register-email" method="POST">
+          <div class="form-group">
+            <label for="registerName">Full Name</label>
+            <input 
+              type="text" 
+              id="registerName" 
+              name="name" 
+              placeholder="Enter your full name"
+              required
+              autocomplete="name"
+              class="form-control"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="registerEmail">Email Address</label>
+            <input 
+              type="email" 
+              id="registerEmail" 
+              name="email" 
+              placeholder="Enter your email"
+              required
+              autocomplete="email"
+              class="form-control"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="registerPassword">Password</label>
+            <input 
+              type="password" 
+              id="registerPassword" 
+              name="password" 
+              placeholder="Create a password (min 6 characters)"
+              required
+              minlength="6"
+              autocomplete="new-password"
+              class="form-control"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="registerPhone">Phone Number (Optional)</label>
+            <div class="phone-input-wrapper">
+              <span class="country-code">+91</span>
+              <input 
+                type="tel" 
+                id="registerPhone" 
+                name="phone" 
+                placeholder="10-digit mobile number"
+                pattern="[0-9]{10}"
+                maxlength="10"
+                autocomplete="tel"
+                class="form-control"
+              >
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="registerRole">I am a</label>
+            <select id="registerRole" name="role" required class="form-control">
+              <option value="customer">Customer</option>
+              <option value="professional">Service Professional</option>
+            </select>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-block">
+            <i class="fas fa-user-plus"></i> Create Account
+          </button>
+        </form>
+      </div>
+      
+      <!-- Phone Input Step (Hidden - OTP not available) -->
+      <div id="registerPhoneStep" class="auth-step" style="display: none;">
+        <form id="registerPhoneForm" onsubmit="sendRegisterOTP(event)">
+          <div class="form-group">
+            <label for="registerName">Full Name</label>
+            <input 
+              type="text" 
+              id="registerName" 
+              name="name" 
+              placeholder="Enter your full name"
+              autocomplete="name"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="registerPhone">Phone Number</label>
+            <div class="phone-input-wrapper">
+              <span class="country-code">+91</span>
+              <input 
+                type="tel" 
+                id="registerPhone" 
+                name="phone" 
+                placeholder="Enter 10-digit mobile number"
+                pattern="[0-9]{10}"
+                maxlength="10"
+                autocomplete="tel"
+              >
+            </div>
+            <small class="form-hint">We'll send you a verification code</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="registerRole">I am a</label>
+            <select id="registerRole" name="role">
+              <option value="customer">Customer</option>
+              <option value="professional">Service Professional</option>
+            </select>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-block">
+            <span id="registerPhoneBtn">Send OTP</span>
+            <span id="registerPhoneLoader" class="btn-loader" style="display: none;">
+              <i class="fas fa-spinner fa-spin"></i> Sending...
+            </span>
+          </button>
+        </form>
+      </div>
+      
+      <!-- OTP Verification Step -->
+      <div id="registerOtpStep" class="auth-step">
+        <div class="otp-sent-message">
+          <i class="fas fa-mobile-alt"></i>
+          <p>OTP sent to <strong id="registerPhoneDisplay"></strong></p>
+          <button class="change-number-btn" onclick="changeRegisterNumber()">
+            <i class="fas fa-edit"></i> Change
+          </button>
+        </div>
+        
+        <form id="registerOtpForm" onsubmit="verifyRegisterOTP(event)">
+          <div class="form-group">
+            <label>Enter OTP</label>
+            <div class="otp-input-group">
+              <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="one-time-code" />
+              <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" />
+              <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" />
+              <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" />
+              <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" />
+              <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" />
+            </div>
+          </div>
+          
+          <div class="resend-wrapper">
+            <span id="registerOtpTimer" class="otp-timer">Resend OTP in <strong>30</strong>s</span>
+            <button type="button" id="registerResendBtn" class="resend-btn" onclick="resendRegisterOTP()" style="display: none;">
+              Resend OTP
+            </button>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-block">
+            <span id="registerOtpBtn">Verify & Register</span>
+            <span id="registerOtpLoader" class="btn-loader" style="display: none;">
+              <i class="fas fa-spinner fa-spin"></i> Verifying...
+            </span>
+          </button>
+        </form>
+      </div>
+    </div>
+    
+    <div class="auth-modal-footer">
+      <p>Already have an account? <a href="#" onclick="switchToLogin(); return false;">Login</a></p>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Auth Modal Styles */
+  .auth-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+  }
+  
+  .auth-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .auth-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+  }
+  
+  .auth-modal-content {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from {
+      transform: translateY(50px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .auth-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #f0f0f0;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 1;
+  }
+  
+  .auth-modal-close:hover {
+    background: #e0e0e0;
+    transform: rotate(90deg);
+  }
+  
+  .auth-modal-header {
+    padding: 2rem 2rem 1rem;
+    text-align: center;
+    background: linear-gradient(135deg, #2E3192 0%, #1BFFFF 100%);
+    color: white;
+    border-radius: 16px 16px 0 0;
+  }
+  
+  .auth-modal-header h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+  
+  .auth-modal-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+  }
+  
+  .auth-modal-body {
+    padding: 2rem;
+  }
+  
+  .auth-step {
+    display: none;
+  }
+  
+  .auth-step.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+  
+  .phone-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: border-color 0.3s;
+  }
+  
+  .phone-input-wrapper:focus-within {
+    border-color: #2E3192;
+  }
+  
+  .country-code {
+    font-weight: 600;
+    color: #333;
+    padding-right: 0.5rem;
+    border-right: 2px solid #e0e0e0;
+  }
+  
+  .phone-input-wrapper input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    padding: 0;
+  }
+  
+  .form-hint {
+    display: block;
+    margin-top: 0.5rem;
+    color: #666;
+    font-size: 0.85rem;
+  }
+  
+  .otp-sent-message {
+    background: #e8f4f8;
+    border-left: 4px solid #2E3192;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .otp-sent-message i {
+    font-size: 2rem;
+    color: #2E3192;
+  }
+  
+  .otp-sent-message p {
+    margin: 0;
+    flex: 1;
+    font-size: 0.95rem;
+  }
+  
+  .change-number-btn {
+    background: none;
+    border: none;
+    color: #2E3192;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+  
+  .change-number-btn:hover {
+    background: rgba(46, 49, 146, 0.1);
+  }
+  
+  .otp-input-group {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+  
+  .otp-digit {
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  
+  .otp-digit:focus {
+    outline: none;
+    border-color: #2E3192;
+    box-shadow: 0 0 0 3px rgba(46, 49, 146, 0.1);
+  }
+  
+  .resend-wrapper {
+    text-align: center;
+    margin: 1rem 0;
+  }
+  
+  .otp-timer {
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .resend-btn {
+    background: none;
+    border: none;
+    color: #2E3192;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+  
+  .resend-btn:hover {
+    color: #1BFFFF;
+  }
+  
+  .btn-block {
+    width: 100%;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+  
+  .form-control:focus {
+    outline: none;
+    border-color: #2E3192;
+    box-shadow: 0 0 0 3px rgba(46, 49, 146, 0.1);
+  }
+  
+  .form-control::placeholder {
+    color: #999;
+  }
+  
+  select.form-control {
+    cursor: pointer;
+    background: white;
+  }
+  
+  .btn-loader {
+    display: inline-block;
+  }
+  
+  .auth-modal-footer {
+    padding: 1rem 2rem 2rem;
+    text-align: center;
+    border-top: 1px solid #e0e0e0;
+  }
+  
+  .auth-modal-footer p {
+    margin: 0;
+    color: #666;
+  }
+  
+  .auth-modal-footer a {
+    color: #2E3192;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  
+  .auth-modal-footer a:hover {
+    text-decoration: underline;
+  }
+  
+  @media (max-width: 576px) {
+    .auth-modal-content {
+      width: 95%;
+      max-height: 95vh;
+    }
+    
+    .auth-modal-header {
+      padding: 1.5rem 1.5rem 1rem;
+    }
+    
+    .auth-modal-header h2 {
+      font-size: 1.5rem;
+    }
+    
+    .auth-modal-body {
+      padding: 1.5rem;
+    }
+    
+    .otp-digit {
+      width: 42px;
+      height: 42px;
+      font-size: 1.25rem;
+    }
+    
+    .otp-input-group {
+      gap: 0.5rem;
+    }
+  }
+</style>
+
+<script>
+  // Global variables to store temporary data
+  let loginPhoneNumber = '';
+  let registerFormData = {};
+  let loginOtpTimer = null;
+  let registerOtpTimer = null;
+  
+  // Open/Close Login Modal
+  function openLoginModal() {
+    document.getElementById('loginModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  
+  function closeLoginModal() {
+    document.getElementById('loginModal').classList.remove('active');
+    document.body.style.overflow = '';
+    resetLoginModal();
+  }
+  
+  function resetLoginModal() {
+    document.getElementById('loginPhoneStep').classList.add('active');
+    document.getElementById('loginOtpStep').classList.remove('active');
+    document.getElementById('loginPhoneForm').reset();
+    document.getElementById('loginOtpForm').reset();
+    clearInterval(loginOtpTimer);
+  }
+  
+  // Open/Close Register Modal
+  function openRegisterModal() {
+    document.getElementById('registerModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  
+  function closeRegisterModal() {
+    document.getElementById('registerModal').classList.remove('active');
+    document.body.style.overflow = '';
+    resetRegisterModal();
+  }
+  
+  function resetRegisterModal() {
+    document.getElementById('registerPhoneStep').classList.add('active');
+    document.getElementById('registerOtpStep').classList.remove('active');
+    document.getElementById('registerPhoneForm').reset();
+    document.getElementById('registerOtpForm').reset();
+    clearInterval(registerOtpTimer);
+  }
+  
+  // Switch between Login and Register
+  function switchToRegister() {
+    closeLoginModal();
+    setTimeout(openRegisterModal, 300);
+  }
+  
+  function switchToLogin() {
+    closeRegisterModal();
+    setTimeout(openLoginModal, 300);
+  }
+  
+  // OTP Input Auto-focus
+  function setupOTPInputs(container) {
+    const inputs = container.querySelectorAll('.otp-digit');
+    inputs.forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        if (e.target.value.length === 1 && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+      });
+      
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+          inputs[index - 1].focus();
+        }
+      });
+      
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData('text').slice(0, 6);
+        pastedData.split('').forEach((char, i) => {
+          if (inputs[i] && /[0-9]/.test(char)) {
+            inputs[i].value = char;
+          }
+        });
+        if (inputs[Math.min(pastedData.length, 5)]) {
+          inputs[Math.min(pastedData.length, 5)].focus();
+        }
+      });
+    });
+  }
+  
+  // Initialize OTP inputs on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    setupOTPInputs(document.getElementById('loginOtpStep'));
+    setupOTPInputs(document.getElementById('registerOtpStep'));
+  });
+  
+  // Login OTP Flow
+  async function sendLoginOTP(e) {
+    e.preventDefault();
+    const phone = document.getElementById('loginPhone').value;
+    
+    if (phone.length !== 10) {
+      alert('Please enter a valid 10-digit phone number');
+      return;
+    }
+    
+    loginPhoneNumber = phone;
+    showLoader('loginPhoneBtn', 'loginPhoneLoader');
+    
+    try {
+      const response = await fetch('/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        document.getElementById('loginPhoneDisplay').textContent = '+91 ' + phone;
+        document.getElementById('loginPhoneStep').classList.remove('active');
+        document.getElementById('loginOtpStep').classList.add('active');
+        startOTPTimer('loginOtpTimer', 'loginResendBtn', 30);
+        document.querySelector('#loginOtpStep .otp-digit').focus();
+      } else {
+        alert(data.message || 'Failed to send OTP. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred. Please try again.');
+    } finally {
+      hideLoader('loginPhoneBtn', 'loginPhoneLoader');
+    }
+  }
+  
+  async function verifyLoginOTP(e) {
+    e.preventDefault();
+    const otpInputs = document.querySelectorAll('#loginOtpStep .otp-digit');
+    const otp = Array.from(otpInputs).map(input => input.value).join('');
+    
+    if (otp.length !== 6) {
+      alert('Please enter the 6-digit OTP');
+      return;
+    }
+    
+    showLoader('loginOtpBtn', 'loginOtpLoader');
+    
+    try {
+      const response = await fetch('/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: loginPhoneNumber, otp })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('Login successful!');
+        closeLoginModal();
+        location.reload();
+      } else {
+        alert(data.message || 'Invalid OTP. Please try again.');
+        otpInputs.forEach(input => input.value = '');
+        otpInputs[0].focus();
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred. Please try again.');
+    } finally {
+      hideLoader('loginOtpBtn', 'loginOtpLoader');
+    }
+  }
+  
+  function changeLoginNumber() {
+    document.getElementById('loginOtpStep').classList.remove('active');
+    document.getElementById('loginPhoneStep').classList.add('active');
+    clearInterval(loginOtpTimer);
+  }
+  
+  async function resendLoginOTP() {
+    await sendLoginOTP({ preventDefault: () => {} });
+  }
+  
+  // Register OTP Flow
+  async function sendRegisterOTP(e) {
+    e.preventDefault();
+    const name = document.getElementById('registerName').value;
+    const phone = document.getElementById('registerPhone').value;
+    const role = document.getElementById('registerRole').value;
+    
+    if (phone.length !== 10) {
+      alert('Please enter a valid 10-digit phone number');
+      return;
+    }
+    
+    registerFormData = { name, phone, role };
+    showLoader('registerPhoneBtn', 'registerPhoneLoader');
+    
+    try {
+      const response = await fetch('/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        document.getElementById('registerPhoneDisplay').textContent = '+91 ' + phone;
+        document.getElementById('registerPhoneStep').classList.remove('active');
+        document.getElementById('registerOtpStep').classList.add('active');
+        startOTPTimer('registerOtpTimer', 'registerResendBtn', 30);
+        document.querySelector('#registerOtpStep .otp-digit').focus();
+      } else {
+        alert(data.message || 'Failed to send OTP. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred. Please try again.');
+    } finally {
+      hideLoader('registerPhoneBtn', 'registerPhoneLoader');
+    }
+  }
+  
+  async function verifyRegisterOTP(e) {
+    e.preventDefault();
+    const otpInputs = document.querySelectorAll('#registerOtpStep .otp-digit');
+    const otp = Array.from(otpInputs).map(input => input.value).join('');
+    
+    if (otp.length !== 6) {
+      alert('Please enter the 6-digit OTP');
+      return;
+    }
+    
+    showLoader('registerOtpBtn', 'registerOtpLoader');
+    
+    try {
+      const response = await fetch('/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...registerFormData, otp })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('Registration successful!');
+        closeRegisterModal();
+        location.reload();
+      } else {
+        alert(data.message || 'Invalid OTP. Please try again.');
+        otpInputs.forEach(input => input.value = '');
+        otpInputs[0].focus();
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred. Please try again.');
+    } finally {
+      hideLoader('registerOtpBtn', 'registerOtpLoader');
+    }
+  }
+  
+  function changeRegisterNumber() {
+    document.getElementById('registerOtpStep').classList.remove('active');
+    document.getElementById('registerPhoneStep').classList.add('active');
+    clearInterval(registerOtpTimer);
+  }
+  
+  async function resendRegisterOTP() {
+    await sendRegisterOTP({ preventDefault: () => {} });
+  }
+  
+  // Helper Functions
+  function showLoader(btnId, loaderId) {
+    document.getElementById(btnId).style.display = 'none';
+    document.getElementById(loaderId).style.display = 'inline-block';
+  }
+  
+  function hideLoader(btnId, loaderId) {
+    document.getElementById(btnId).style.display = 'inline-block';
+    document.getElementById(loaderId).style.display = 'none';
+  }
+  
+  function startOTPTimer(timerId, resendBtnId, seconds) {
+    let timeLeft = seconds;
+    const timerEl = document.getElementById(timerId);
+    const resendBtn = document.getElementById(resendBtnId);
+    
+    timerEl.style.display = 'inline';
+    resendBtn.style.display = 'none';
+    
+    const timer = setInterval(() => {
+      timeLeft--;
+      timerEl.querySelector('strong').textContent = timeLeft;
+      
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        timerEl.style.display = 'none';
+        resendBtn.style.display = 'inline-block';
+      }
+    }, 1000);
+    
+    if (timerId === 'loginOtpTimer') loginOtpTimer = timer;
+    else registerOtpTimer = timer;
+  }
+</script>

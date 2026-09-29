@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+  
+  <% if (error) { %>
+    <div class="alert alert-error"><%= error %></div>
+  <% } %>
+  
+  <div class="container">
+    <div class="page-header">
+      <h1>Edit Service</h1>
+    </div>
+    
+    <form action="/admin/services/edit/<%= service._id %>" method="POST" enctype="multipart/form-data" class="form-container">
+      <div class="form-group">
+        <label for="name">Service Name</label>
+        <input type="text" id="name" name="name" value="<%= service.name %>" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="category">Category</label>
+        <select id="category" name="category" required>
+          <option value="Home Cleaning" <%= service.category === 'Home Cleaning' ? 'selected' : '' %>>Home Cleaning</option>
+          <option value="Salon" <%= service.category === 'Salon' ? 'selected' : '' %>>Salon</option>
+          <option value="Appliance Repair" <%= service.category === 'Appliance Repair' ? 'selected' : '' %>>Appliance Repair</option>
+          <option value="Painting" <%= service.category === 'Painting' ? 'selected' : '' %>>Painting</option>
+          <option value="Plumbing" <%= service.category === 'Plumbing' ? 'selected' : '' %>>Plumbing</option>
+          <option value="Electrical" <%= service.category === 'Electrical' ? 'selected' : '' %>>Electrical</option>
+          <option value="Carpentry" <%= service.category === 'Carpentry' ? 'selected' : '' %>>Carpentry</option>
+          <option value="Pest Control" <%= service.category === 'Pest Control' ? 'selected' : '' %>>Pest Control</option>
+          <option value="AC Repair" <%= service.category === 'AC Repair' ? 'selected' : '' %>>AC Repair</option>
+          <option value="Other" <%= service.category === 'Other' ? 'selected' : '' %>>Other</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="4" required><%= service.description %></textarea>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="price">Price (₹)</label>
+          <input type="number" id="price" name="price" value="<%= service.price %>" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="duration">Duration (minutes)</label>
+          <input type="number" id="duration" name="duration" value="<%= service.duration %>" required>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="features">Features (comma separated)</label>
+        <input type="text" id="features" name="features" value="<%= service.features.join(', ') %>">
+      </div>
+      
+      <div class="form-group">
+        <label for="active">Status</label>
+        <select id="active" name="active">
+          <option value="true" <%= service.active ? 'selected' : '' %>>Active</option>
+          <option value="false" <%= !service.active ? 'selected' : '' %>>Inactive</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="image">Service Image</label>
+        <input type="file" id="image" name="image" accept="image/*">
+        <% if (service.image) { %>
+          <img src="<%= service.image %>" alt="Current image" style="max-width: 200px; margin-top: 10px;">
+        <% } %>
+      </div>
+      
+      <div class="form-actions">
+        <a href="/admin/services" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary">Update Service</button>
+      </div>
+    </form>
+  </div>
+  
+  <%- include('../partials/footer') %>
+  
+  <script src="/js/main.js"></script>
+</body>
+</html>

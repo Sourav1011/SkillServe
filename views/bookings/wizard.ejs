@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book <%= service.name %> | Skill Serve</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/booking-wizard.css">
+</head>
+<body>
+  <div id="userData" data-user-id="<%= user._id %>" style="display: none;"></div>
+  <div id="serviceData" data-service-id="<%= service._id %>" data-service-price="<%= service.price %>" data-service-category="<%= service.category %>" style="display: none;"></div>
+
+  <%- include('../partials/header') %>
+
+  <div class="wizard-container">
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+      <div class="step-indicator active" data-step="1">
+        <div class="step-number">1</div>
+        <span>Date & Time</span>
+      </div>
+      <div class="step-indicator" data-step="2">
+        <div class="step-number">2</div>
+        <span>Professional</span>
+      </div>
+      <div class="step-indicator" data-step="3">
+        <div class="step-number">3</div>
+        <span>Address</span>
+      </div>
+      <div class="step-indicator" data-step="4">
+        <div class="step-number">4</div>
+        <span>Payment</span>
+      </div>
+      <div class="step-indicator" data-step="5">
+        <div class="step-number">5</div>
+        <span>Confirm</span>
+      </div>
+    </div>
+
+    <!-- Wizard Steps -->
+    <div class="wizard-content">
+      <!-- Step 1: Date & Time -->
+      <div class="wizard-step active" id="step1">
+        <h2>Select Date & Time</h2>
+        <p class="subtitle">Choose your preferred date and time slot</p>
+        
+        <div class="date-selection">
+          <h3>Select Date</h3>
+          <div id="dateGrid" class="date-grid"></div>
+        </div>
+
+        <div class="time-selection">
+          <h3>Select Time Slot</h3>
+          <div id="timeGrid" class="time-grid"></div>
+        </div>
+
+        <div class="wizard-actions">
+          <button class="btn-secondary" onclick="window.location.href='/services'">Cancel</button>
+          <button class="btn-primary" id="step1Next" disabled onclick="nextStep(2)">Continue</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Select Professional -->
+      <div class="wizard-step" id="step2">
+        <h2>Choose Your Professional</h2>
+        <p class="subtitle">Select from available professionals</p>
+        
+        <div id="professionalsGrid" class="professionals-grid">
+          <div class="loading">Loading professionals...</div>
+        </div>
+
+        <div class="wizard-actions">
+          <button class="btn-secondary" onclick="previousStep(1)">Back</button>
+          <button class="btn-primary" id="step2Next" disabled onclick="nextStep(3)">Continue</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Address -->
+      <div class="wizard-step" id="step3">
+        <h2>Service Address</h2>
+        <p class="subtitle">Where should we provide the service?</p>
+        
+        <form id="addressForm" class="address-form">
+          <div class="form-group">
+            <label>Full Address *</label>
+            <input type="text" id="fullAddress" required placeholder="House/Flat/Block No.">
+          </div>
+          <div class="form-group">
+            <label>Landmark</label>
+            <input type="text" id="landmark" placeholder="Nearby landmark">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>City *</label>
+              <input type="text" id="city" required placeholder="City">
+            </div>
+            <div class="form-group">
+              <label>Pincode *</label>
+              <input type="text" id="pincode" required placeholder="Pincode">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Special Instructions</label>
+            <textarea id="notes" rows="3" placeholder="Any special requirements or instructions"></textarea>
+          </div>
+        </form>
+
+        <div class="wizard-actions">
+          <button class="btn-secondary" onclick="previousStep(2)">Back</button>
+          <button class="btn-primary" onclick="nextStep(4)">Continue</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Payment -->
+      <div class="wizard-step" id="step4">
+        <h2>Payment Method</h2>
+        <p class="subtitle">Choose how you want to pay</p>
+        
+        <div class="payment-methods">
+          <div class="payment-option" data-method="wallet" onclick="selectPayment('wallet')">
+            <i class="fas fa-wallet"></i>
+            <div>
+              <h4>Wallet</h4>
+              <p>Pay using your Skill Serve wallet</p>
+            </div>
+          </div>
+          <div class="payment-option" data-method="cash" onclick="selectPayment('cash')">
+            <i class="fas fa-money-bill-wave"></i>
+            <div>
+              <h4>Cash on Service</h4>
+              <p>Pay after service completion</p>
+            </div>
+          </div>
+          <div class="payment-option" data-method="online" onclick="selectPayment('online')">
+            <i class="fas fa-credit-card"></i>
+            <div>
+              <h4>Online Payment</h4>
+              <p>Pay via UPI, Card, Net Banking & More</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="price-summary">
+          <div class="summary-row">
+            <span>Service Price</span>
+            <span>₹<%= service.price %></span>
+          </div>
+          <div class="summary-row">
+            <span>Platform Fee</span>
+            <span>₹0</span>
+          </div>
+          <div class="summary-row total">
+            <span>Total Amount</span>
+            <span>₹<%= service.price %></span>
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <button class="btn-secondary" onclick="previousStep(3)">Back</button>
+          <button class="btn-primary" id="step4Next" disabled onclick="nextStep(5)">Continue</button>
+        </div>
+      </div>
+
+      <!-- Step 5: Confirmation -->
+      <div class="wizard-step" id="step5">
+        <div class="confirmation-summary">
+          <h2>Review Your Booking</h2>
+          <p class="subtitle">Please review all details before confirming</p>
+          
+          <div class="summary-card">
+            <h3>Service Details</h3>
+            <div class="detail-row">
+              <span>Service</span>
+              <span><strong><%= service.name %></strong></span>
+            </div>
+            <div class="detail-row">
+              <span>Date</span>
+              <span id="summaryDate"></span>
+            </div>
+            <div class="detail-row">
+              <span>Time</span>
+              <span id="summaryTime"></span>
+            </div>
+            <div class="detail-row">
+              <span>Professional</span>
+              <span id="summaryProfessional"></span>
+            </div>
+          </div>
+
+          <div class="summary-card">
+            <h3>Address</h3>
+            <p id="summaryAddress"></p>
+          </div>
+
+          <div class="summary-card">
+            <h3>Payment</h3>
+            <div class="detail-row">
+              <span>Method</span>
+              <span id="summaryPayment"></span>
+            </div>
+            <div class="detail-row total-amount">
+              <span>Total Amount</span>
+              <span>₹<%= service.price %></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <button class="btn-secondary" onclick="previousStep(4)">Back</button>
+          <button class="btn-primary btn-confirm" onclick="confirmBooking()">
+            <i class="fas fa-check-circle"></i> Confirm Booking
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+
+  <!-- Stripe SDK -->
+  <script src="https://js.stripe.com/v3/"></script>
+  
+  <script src="/js/booking-wizard.js"></script>
+</body>
+</html>

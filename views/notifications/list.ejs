@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | Skill Serve</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .notifications-container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .notifications-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .notifications-header h1 {
+      font-size: 2rem;
+      color: var(--text-primary);
+    }
+
+    .mark-all-read-btn {
+      background: var(--primary-color);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .mark-all-read-btn:hover {
+      background: var(--secondary-color);
+      transform: translateY(-2px);
+    }
+
+    .notifications-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .notification-item {
+      background: white;
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      gap: 1rem;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .notification-item:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateX(5px);
+    }
+
+    .notification-item.unread {
+      background: #F0F4FF;
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .notification-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 1.5rem;
+    }
+
+    .notification-icon.booking {
+      background: #E0F2FE;
+      color: #0284C7;
+    }
+
+    .notification-icon.payment {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .notification-icon.chat {
+      background: #FCE7F3;
+      color: #DB2777;
+    }
+
+    .notification-icon.review {
+      background: #FEF3C7;
+      color: #F59E0B;
+    }
+
+    .notification-icon.promotional {
+      background: #DBEAFE;
+      color: #2563EB;
+    }
+
+    .notification-icon.system {
+      background: #F3E8FF;
+      color: #9333EA;
+    }
+
+    .notification-content {
+      flex: 1;
+    }
+
+    .notification-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .notification-message {
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .notification-time {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .notification-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+
+    .notification-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      color: var(--text-secondary);
+    }
+
+    .notification-btn:hover {
+      background: var(--bg-light);
+      color: var(--primary-color);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: white;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      color: var(--border);
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h2 {
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+      color: var(--text-secondary);
+    }
+
+    .unread-badge {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 10px;
+      height: 10px;
+      background: var(--primary-color);
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <!-- Hidden user data for Socket.IO -->
+  <div id="userData" data-user-id="<%= user._id %>" data-user-role="<%= user.role %>" style="display: none;"></div>
+
+  <%- include('../partials/header') %>
+
+  <div class="notifications-container">
+    <div class="notifications-header">
+      <h1><i class="fas fa-bell"></i> Notifications</h1>
+      <% if (notifications && notifications.length > 0) { %>
+        <button class="mark-all-read-btn" onclick="markAllAsRead()">
+          <i class="fas fa-check-double"></i> Mark All as Read
+        </button>
+      <% } %>
+    </div>
+
+    <div class="notifications-list">
+      <% if (notifications && notifications.length > 0) { %>
+        <% notifications.forEach(notification => { %>
+          <div class="notification-item <%= !notification.isRead ? 'unread' : '' %>" data-id="<%= notification._id %>">
+            <% if (!notification.isRead) { %>
+              <div class="unread-badge"></div>
+            <% } %>
+            
+            <div class="notification-icon <%= notification.type %>">
+              <% if (notification.type === 'booking') { %>
+                <i class="fas fa-calendar-check"></i>
+              <% } else if (notification.type === 'payment') { %>
+                <i class="fas fa-dollar-sign"></i>
+              <% } else if (notification.type === 'chat') { %>
+                <i class="fas fa-comment"></i>
+              <% } else if (notification.type === 'review') { %>
+                <i class="fas fa-star"></i>
+              <% } else if (notification.type === 'promotional') { %>
+                <i class="fas fa-gift"></i>
+              <% } else { %>
+                <i class="fas fa-info-circle"></i>
+              <% } %>
+            </div>
+
+            <div class="notification-content">
+              <div class="notification-title"><%= notification.title %></div>
+              <div class="notification-message"><%= notification.message %></div>
+              <div class="notification-time">
+                <i class="far fa-clock"></i>
+                <span class="time-ago" data-time="<%= notification.createdAt %>">
+                  <%= new Date(notification.createdAt).toLocaleDateString() %> at 
+                  <%= new Date(notification.createdAt).toLocaleTimeString() %>
+                </span>
+              </div>
+            </div>
+
+            <div class="notification-actions">
+              <% if (!notification.isRead) { %>
+                <button class="notification-btn" onclick="markAsRead('<%= notification._id %>')" title="Mark as read">
+                  <i class="fas fa-check"></i>
+                </button>
+              <% } %>
+              <button class="notification-btn" onclick="deleteNotification('<%= notification._id %>')" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="empty-state">
+          <i class="fas fa-bell-slash"></i>
+          <h2>No notifications yet</h2>
+          <p>You'll see notifications here when there's activity on your account</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/socket-client.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/main.js"></script>
+
+  <script>
+    // Mark single notification as read
+    async function markAsRead(notificationId) {
+      try {
+        const response = await fetch(`/notifications/${notificationId}/read`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+          const item = document.querySelector(`[data-id="${notificationId}"]`);
+          item.classList.remove('unread');
+          item.querySelector('.unread-badge')?.remove();
+          item.querySelector('.fa-check')?.closest('.notification-btn')?.remove();
+          
+          // Update badge count
+          updateBadgeCount(-1);
+        }
+      } catch (error) {
+        console.error('Error marking as read:', error);
+        alert('Failed to mark notification as read');
+      }
+    }
+
+    // Mark all as read
+    async function markAllAsRead() {
+      try {
+        const response = await fetch('/notifications/read-all', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+          location.reload();
+        }
+      } catch (error) {
+        console.error('Error marking all as read:', error);
+        alert('Failed to mark all as read');
+      }
+    }
+
+    // Delete notification
+    async function deleteNotification(notificationId) {
+      if (!confirm('Delete this notification?')) return;
+
+      try {
+        const response = await fetch(`/notifications/${notificationId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+          const item = document.querySelector(`[data-id="${notificationId}"]`);
+          item.style.opacity = '0';
+          setTimeout(() => item.remove(), 300);
+          
+          // Update badge count if unread
+          if (item.classList.contains('unread')) {
+            updateBadgeCount(-1);
+          }
+        }
+      } catch (error) {
+        console.error('Error deleting notification:', error);
+        alert('Failed to delete notification');
+      }
+    }
+
+    // Update badge count
+    function updateBadgeCount(delta) {
+      const badge = document.querySelector('#notificationBadge');
+      if (badge) {
+        const currentCount = parseInt(badge.textContent) || 0;
+        const newCount = Math.max(0, currentCount + delta);
+        
+        if (newCount > 0) {
+          badge.textContent = newCount;
+          badge.style.display = 'flex';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+    }
+
+    // Format time ago
+    function formatTimeAgo() {
+      document.querySelectorAll('.time-ago').forEach(el => {
+        const time = new Date(el.dataset.time);
+        const now = new Date();
+        const diff = Math.floor((now - time) / 1000); // seconds
+
+        let timeAgo;
+        if (diff < 60) {
+          timeAgo = 'Just now';
+        } else if (diff < 3600) {
+          const mins = Math.floor(diff / 60);
+          timeAgo = `${mins} minute${mins > 1 ? 's' : ''} ago`;
+        } else if (diff < 86400) {
+          const hours = Math.floor(diff / 3600);
+          timeAgo = `${hours} hour${hours > 1 ? 's' : ''} ago`;
+        } else if (diff < 604800) {
+          const days = Math.floor(diff / 86400);
+          timeAgo = `${days} day${days > 1 ? 's' : ''} ago`;
+        } else {
+          timeAgo = time.toLocaleDateString();
+        }
+
+        el.textContent = timeAgo;
+      });
+    }
+
+    // Call on load
+    formatTimeAgo();
+    setInterval(formatTimeAgo, 60000); // Update every minute
+  </script>
+</body>
+</html>

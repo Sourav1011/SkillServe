@@ -1,0 +1,599 @@
+<!-- Login Modal -->
+<div class="login-modal" id="loginModal">
+  <div class="login-modal-content">
+    <button class="close-modal" onclick="closeLoginModal()">&times;</button>
+    
+    <div class="login-modal-header">
+      <h2>Login</h2>
+      <p>Get access to your orders, offers, and more</p>
+    </div>
+    
+    <div class="login-tabs">
+      <button class="login-tab active" data-tab="phone">Phone</button>
+      <button class="login-tab" data-tab="email">Email</button>
+    </div>
+    
+    <!-- Phone Login Tab -->
+    <div class="login-tab-content active" id="phoneTab">
+      <form id="phoneLoginForm">
+        <div class="form-group">
+          <label>Phone Number</label>
+          <div class="phone-input-group">
+            <span class="country-code">+91</span>
+            <input 
+              type="tel" 
+              id="phoneNumber" 
+              placeholder="Enter 10-digit mobile number"
+              maxlength="10"
+              pattern="[0-9]{10}"
+              required
+            >
+          </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-block">
+          Send OTP
+        </button>
+      </form>
+      
+      <!-- OTP Verification (Hidden by default) -->
+      <div id="otpSection" style="display: none;">
+        <p class="otp-sent-text">We've sent a 6-digit OTP to <strong id="displayPhone"></strong></p>
+        
+        <form id="otpVerifyForm">
+          <div class="otp-inputs">
+            <input type="text" maxlength="1" class="otp-input" data-index="0">
+            <input type="text" maxlength="1" class="otp-input" data-index="1">
+            <input type="text" maxlength="1" class="otp-input" data-index="2">
+            <input type="text" maxlength="1" class="otp-input" data-index="3">
+            <input type="text" maxlength="1" class="otp-input" data-index="4">
+            <input type="text" maxlength="1" class="otp-input" data-index="5">
+          </div>
+          
+          <div class="otp-timer">
+            <span id="timer">00:30</span>
+            <button type="button" class="btn-link" id="resendOtp" style="display: none;">Resend OTP</button>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-block">
+            Verify OTP
+          </button>
+        </form>
+        
+        <button type="button" class="btn-text" onclick="changeNumber()">
+          <i class="fas fa-arrow-left"></i> Change Number
+        </button>
+      </div>
+    </div>
+    
+    <!-- Email Login Tab -->
+    <div class="login-tab-content" id="emailTab">
+      <form id="emailLoginForm">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input 
+            type="email" 
+            id="emailAddress" 
+            placeholder="Enter your email"
+            required
+          >
+        </div>
+        
+        <div class="form-group">
+          <label>Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            placeholder="Enter your password"
+            required
+          >
+        </div>
+        
+        <div class="form-options">
+          <label class="checkbox">
+            <input type="checkbox" id="rememberMe">
+            <span>Remember me</span>
+          </label>
+          <a href="#" class="forgot-password">Forgot Password?</a>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-block">
+          Login
+        </button>
+      </form>
+    </div>
+    
+    <!-- Social Login -->
+    <div class="social-login">
+      <div class="divider">
+        <span>OR</span>
+      </div>
+      
+      <button class="btn-social btn-google">
+        <i class="fab fa-google"></i>
+        Continue with Google
+      </button>
+      
+      <button class="btn-social btn-facebook">
+        <i class="fab fa-facebook-f"></i>
+        Continue with Facebook
+      </button>
+    </div>
+    
+    <div class="login-footer">
+      <p>Don't have an account? <a href="/auth/register" class="link-primary">Sign Up</a></p>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Login Modal Styles */
+.login-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-modal.active {
+  display: flex;
+}
+
+.login-modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 450px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: modalSlideUp 0.3s ease;
+}
+
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.login-modal-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-modal-header h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 0.5rem;
+}
+
+.login-modal-header p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.login-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.login-tab {
+  flex: 1;
+  padding: 0.875rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.login-tab.active {
+  color: var(--primary-color);
+}
+
+.login-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--primary-color);
+  border-radius: 3px 3px 0 0;
+}
+
+.login-tab-content {
+  display: none;
+}
+
+.login-tab-content.active {
+  display: block;
+}
+
+.phone-input-group {
+  display: flex;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.country-code {
+  padding: 0.875rem 1rem;
+  background: var(--bg-light);
+  border-right: 1.5px solid var(--border);
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.phone-input-group input {
+  flex: 1;
+  border: none;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+}
+
+.phone-input-group input:focus {
+  outline: none;
+}
+
+.otp-sent-text {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.otp-inputs {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  justify-content: center;
+}
+
+.otp-input {
+  width: 50px;
+  height: 50px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.2s ease;
+}
+
+.otp-input:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+.otp-timer {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+#timer {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.checkbox input {
+  cursor: pointer;
+}
+
+.forgot-password {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.social-login {
+  margin-top: 1.5rem;
+}
+
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+}
+
+.divider span {
+  position: relative;
+  background: white;
+  padding: 0 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.btn-social {
+  width: 100%;
+  padding: 0.875rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: white;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.btn-social:hover {
+  background: var(--bg-light);
+  border-color: var(--dark);
+}
+
+.btn-social i {
+  font-size: 1.25rem;
+}
+
+.btn-google {
+  color: #DB4437;
+}
+
+.btn-facebook {
+  color: #4267B2;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.link-primary {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.link-primary:hover {
+  text-decoration: underline;
+}
+
+.btn-block {
+  width: 100%;
+}
+</style>
+
+<script>
+// Login Modal Functions
+function openLoginModal() {
+  document.getElementById('loginModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLoginModal() {
+  document.getElementById('loginModal').classList.remove('active');
+  document.body.style.overflow = '';
+  resetLoginForm();
+}
+
+// Tab switching
+document.querySelectorAll('.login-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const tabName = tab.dataset.tab;
+    
+    document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.login-tab-content').forEach(c => c.classList.remove('active'));
+    
+    tab.classList.add('active');
+    document.getElementById(tabName + 'Tab').classList.add('active');
+  });
+});
+
+// Phone Login - Send OTP
+document.getElementById('phoneLoginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const phone = document.getElementById('phoneNumber').value;
+  
+  if (phone.length !== 10) {
+    alert('Please enter a valid 10-digit phone number');
+    return;
+  }
+  
+  try {
+    // TODO: Make API call to send OTP
+    // const response = await fetch('/api/send-otp', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ phone: '+91' + phone })
+    // });
+    
+    // Simulate OTP sent
+    document.getElementById('phoneLoginForm').style.display = 'none';
+    document.getElementById('otpSection').style.display = 'block';
+    document.getElementById('displayPhone').textContent = '+91-' + phone;
+    startOtpTimer();
+  } catch (error) {
+    alert('Failed to send OTP. Please try again.');
+  }
+});
+
+// OTP Input Auto-focus
+document.querySelectorAll('.otp-input').forEach((input, index) => {
+  input.addEventListener('input', (e) => {
+    if (e.target.value.length === 1) {
+      if (index < 5) {
+        document.querySelector(`.otp-input[data-index="${index + 1}"]`).focus();
+      }
+    }
+  });
+  
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+      document.querySelector(`.otp-input[data-index="${index - 1}"]`).focus();
+    }
+  });
+});
+
+// OTP Timer
+let timerInterval;
+function startOtpTimer() {
+  let seconds = 30;
+  const timerElement = document.getElementById('timer');
+  const resendBtn = document.getElementById('resendOtp');
+  
+  timerInterval = setInterval(() => {
+    seconds--;
+    timerElement.textContent = `00:${seconds.toString().padStart(2, '0')}`;
+    
+    if (seconds === 0) {
+      clearInterval(timerInterval);
+      timerElement.style.display = 'none';
+      resendBtn.style.display = 'inline-block';
+    }
+  }, 1000);
+}
+
+// Resend OTP
+document.getElementById('resendOtp').addEventListener('click', () => {
+  const phone = document.getElementById('phoneNumber').value;
+  // TODO: Make API call to resend OTP
+  document.getElementById('timer').style.display = 'inline';
+  document.getElementById('resendOtp').style.display = 'none';
+  startOtpTimer();
+});
+
+// Verify OTP
+document.getElementById('otpVerifyForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const otp = Array.from(document.querySelectorAll('.otp-input'))
+    .map(input => input.value)
+    .join('');
+  
+  if (otp.length !== 6) {
+    alert('Please enter the complete OTP');
+    return;
+  }
+  
+  try {
+    // TODO: Make API call to verify OTP
+    // const response = await fetch('/api/verify-otp', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ phone: '+91' + document.getElementById('phoneNumber').value, otp })
+    // });
+    
+    alert('Login successful!');
+    closeLoginModal();
+    // Redirect or update UI
+  } catch (error) {
+    alert('Invalid OTP. Please try again.');
+  }
+});
+
+// Change Number
+function changeNumber() {
+  document.getElementById('otpSection').style.display = 'none';
+  document.getElementById('phoneLoginForm').style.display = 'block';
+  clearInterval(timerInterval);
+  document.querySelectorAll('.otp-input').forEach(input => input.value = '');
+}
+
+// Email Login
+document.getElementById('emailLoginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('emailAddress').value;
+  const password = document.getElementById('password').value;
+  
+  try {
+    const response = await fetch('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      alert('Invalid email or password');
+    }
+  } catch (error) {
+    alert('Login failed. Please try again.');
+  }
+});
+
+function resetLoginForm() {
+  document.getElementById('phoneLoginForm').style.display = 'block';
+  document.getElementById('otpSection').style.display = 'none';
+  document.getElementById('phoneNumber').value = '';
+  document.getElementById('emailAddress').value = '';
+  document.getElementById('password').value = '';
+  document.querySelectorAll('.otp-input').forEach(input => input.value = '');
+  clearInterval(timerInterval);
+}
+
+// Close modal when clicking outside
+document.getElementById('loginModal').addEventListener('click', (e) => {
+  if (e.target.id === 'loginModal') {
+    closeLoginModal();
+  }
+});
+</script>

@@ -1,0 +1,42 @@
+<aside class="admin-sidebar">
+  <div class="admin-logo">
+    <h2><i class="fas fa-tools"></i> SkillServe</h2>
+    <p>Admin Control Panel</p>
+  </div>
+
+  <nav class="admin-nav">
+    <div class="nav-section-title">Main</div>
+    <a href="/admin/dashboard" class="nav-item <%= active === 'dashboard' ? 'active' : '' %>">
+      <i class="fas fa-chart-line"></i>
+      <span>Dashboard</span>
+    </a>
+
+    <div class="nav-section-title">Management</div>
+    <a href="/admin/services" class="nav-item <%= active === 'services' ? 'active' : '' %>">
+      <i class="fas fa-concierge-bell"></i>
+      <span>Services</span>
+      <span class="badge"><%= stats.totalServices %></span>
+    </a>
+    <a href="/admin/bookings" class="nav-item <%= active === 'bookings' ? 'active' : '' %>">
+      <i class="fas fa-calendar-check"></i>
+      <span>Bookings</span>
+      <% if (stats.pendingBookings > 0) { %>
+        <span class="badge"><%= stats.pendingBookings %></span>
+      <% } %>
+    </a>
+    <a href="/admin/users" class="nav-item <%= active === 'users' ? 'active' : '' %>">
+      <i class="fas fa-users"></i>
+      <span>Users</span>
+    </a>
+
+    <div class="nav-section-title">Account</div>
+    <a href="/" class="nav-item">
+      <i class="fas fa-arrow-left"></i>
+      <span>Back to Site</span>
+    </a>
+    <a href="/auth/logout" class="nav-item">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Logout</span>
+    </a>
+  </nav>
+</aside>

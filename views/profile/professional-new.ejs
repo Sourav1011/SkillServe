@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Professional Dashboard - Skill Serve</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/professional-dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div id="userData" data-user-id="<%= user._id %>" data-user-role="<%= user.role %>" style="display: none;"></div>
+  <%- include('../partials/header') %>
+
+  <div class="pro-dashboard">
+    <!-- Top Stats Bar -->
+    <div class="stats-bar">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-icon blue">
+              <i class="fas fa-rupee-sign"></i>
+            </div>
+            <div class="stat-data">
+              <p class="stat-label">Today's Earnings</p>
+              <h3 class="stat-value">₹<%= bookings.filter(b => {
+                const today = new Date().toDateString();
+                return b.status === 'completed' && new Date(b.completedAt || b.createdAt).toDateString() === today;
+              }).reduce((sum, b) => sum + (b.totalAmount || 0), 0) %></h3>
+            </div>
+          </div>
+          
+          <div class="stat-box">
+            <div class="stat-icon green">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-data">
+              <p class="stat-label">Today's Jobs</p>
+              <h3 class="stat-value"><%= bookings.filter(b => {
+                const today = new Date().toDateString();
+                return new Date(b.scheduledDate).toDateString() === today;
+              }).length %></h3>
+            </div>
+          </div>
+          
+          <div class="stat-box">
+            <div class="stat-icon orange">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-data">
+              <p class="stat-label">Pending</p>
+              <h3 class="stat-value"><%= bookings.filter(b => b.status === 'pending').length %></h3>
+            </div>
+          </div>
+          
+          <div class="stat-box">
+            <div class="stat-icon purple">
+              <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-data">
+              <p class="stat-label">Rating</p>
+              <h3 class="stat-value"><%= user.rating ? user.rating.toFixed(1) : '4.5' %> ⭐</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar">
+          <div class="profile-card">
+            <div class="profile-header">
+              <div class="avatar-container">
+                <img src="<%= user.profileImage || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=4F46E5&color=fff&size=200' %>" alt="<%= user.name %>" class="avatar-lg">
+                <span class="online-badge <%= user.isOnline ? 'active' : '' %>"></span>
+              </div>
+              <h2 class="profile-name"><%= user.name %></h2>
+              <p class="profile-role"><%= user.profession || 'Service Professional' %></p>
+            </div>
+            
+            <div class="availability-switch">
+              <div class="switch-container">
+                <span class="switch-label">Accept Bookings</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="availabilityToggle" <%= user.availability?.isAvailable ? 'checked' : '' %>>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <p class="switch-hint">Turn on to receive new booking requests</p>
+            </div>
+
+            <div class="profile-stats">
+              <div class="profile-stat">
+                <span class="stat-num"><%= user.experience || 5 %></span>
+                <span class="stat-txt">Years Exp.</span>
+              </div>
+              <div class="profile-stat">
+                <span class="stat-num"><%= bookings.filter(b => b.status === 'completed').length %></span>
+                <span class="stat-txt">Completed</span>
+              </div>
+              <div class="profile-stat">
+                <span class="stat-num">₹<%= bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.totalAmount || 0), 0) %></span>
+                <span class="stat-txt">Earned</span>
+              </div>
+            </div>
+
+            <div class="quick-actions">
+              <a href="/profile/edit" class="action-btn">
+                <i class="fas fa-user-edit"></i>
+                <span>Edit Profile</span>
+              </a>
+              <a href="/profile/professional/settings" class="action-btn">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+              </a>
+              <a href="/profile/professional/availability" class="action-btn">
+                <i class="fas fa-calendar"></i>
+                <span>Availability</span>
+              </a>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+          <!-- Tabs -->
+          <div class="tabs-container">
+            <div class="tabs">
+              <button class="tab active" data-tab="bookings">
+                <i class="fas fa-list"></i>
+                <span>My Bookings</span>
+                <% if (bookings.filter(b => b.status === 'pending').length > 0) { %>
+                  <span class="tab-badge"><%= bookings.filter(b => b.status === 'pending').length %></span>
+                <% } %>
+              </button>
+              <button class="tab" data-tab="earnings">
+                <i class="fas fa-chart-line"></i>
+                <span>Earnings</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bookings Tab -->
+          <div class="tab-content active" id="bookings-tab">
+            <div class="content-header">
+              <h3 class="content-title">Booking Requests</h3>
+              <div class="filter-chips">
+                <button class="filter-chip active" data-filter="all">All</button>
+                <button class="filter-chip" data-filter="pending">Pending</button>
+                <button class="filter-chip" data-filter="confirmed">Confirmed</button>
+                <button class="filter-chip" data-filter="completed">Completed</button>
+                <button class="filter-chip" data-filter="cancelled">Cancelled</button>
+              </div>
+            </div>
+
+            <div class="bookings-list">
+              <% if (bookings && bookings.length > 0) { %>
+                <% bookings.forEach(booking => { %>
+                  <div class="booking-card" data-status="<%= booking.status %>" id="booking-<%= booking._id.toString() %>" data-booking-id="<%= booking._id.toString() %>">
+                    <div class="booking-card-header">
+                      <div class="booking-service">
+                        <div class="service-icon-wrapper">
+                          <i class="fas fa-<%= booking.service.category === 'Home Cleaning' ? 'broom' : booking.service.category === 'Salon' ? 'cut' : booking.service.category === 'Plumbing' ? 'wrench' : 'tools' %>"></i>
+                        </div>
+                        <div>
+                          <h4 class="service-title">
+                            <a href="/services/<%= booking.service._id %>" style="color: inherit; text-decoration: none;">
+                              <%= booking.service.name %>
+                            </a>
+                          </h4>
+                          <p class="service-category"><%= booking.service.category %></p>
+                        </div>
+                      </div>
+                      <span class="status-badge status-<%= booking.status %>">
+                        <%= booking.status.charAt(0).toUpperCase() + booking.status.slice(1) %>
+                      </span>
+                    </div>
+
+                    <div class="booking-card-body">
+                      <div class="booking-info-row">
+                        <div class="info-item">
+                          <i class="fas fa-user icon-muted"></i>
+                          <div>
+                            <p class="info-label">Customer</p>
+                            <p class="info-value"><%= booking.customer.name %></p>
+                          </div>
+                        </div>
+                        <div class="info-item">
+                          <i class="fas fa-phone icon-muted"></i>
+                          <div>
+                            <p class="info-label">Phone</p>
+                            <p class="info-value"><%= booking.customer.phone || 'N/A' %></p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="booking-info-row">
+                        <div class="info-item">
+                          <i class="fas fa-calendar icon-muted"></i>
+                          <div>
+                            <p class="info-label">Date & Time</p>
+                            <p class="info-value"><%= new Date(booking.scheduledDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) %> • <%= booking.scheduledTime %></p>
+                          </div>
+                        </div>
+                        <div class="info-item">
+                          <i class="fas fa-rupee-sign icon-muted"></i>
+                          <div>
+                            <p class="info-label">Amount</p>
+                            <p class="info-value price">₹<%= booking.totalAmount %></p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="booking-info-row full">
+                        <div class="info-item">
+                          <i class="fas fa-map-marker-alt icon-muted"></i>
+                          <div>
+                            <p class="info-label">Address</p>
+                            <p class="info-value"><%= booking.address %></p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="booking-card-footer">
+                      <% if (booking.status === 'pending') { %>
+                        <button class="btn-action btn-accept" data-action="accept" data-booking="<%= booking._id %>">
+                          <i class="fas fa-check"></i>
+                          <span>Accept</span>
+                        </button>
+                        <button class="btn-action btn-reject" data-action="decline" data-booking="<%= booking._id %>">
+                          <i class="fas fa-times"></i>
+                          <span>Decline</span>
+                        </button>
+                      <% } else if (booking.status === 'confirmed') { %>
+                        <button class="btn-action btn-complete" data-action="complete" data-booking="<%= booking._id %>">
+                          <i class="fas fa-check-circle"></i>
+                          <span>Mark Complete</span>
+                        </button>
+                        <button class="btn-action btn-chat" data-action="chat" data-user="<%= booking.customer._id %>">
+                          <i class="fas fa-comment"></i>
+                          <span>Chat</span>
+                        </button>
+                      <% } else if (booking.status === 'completed') { %>
+                        <a href="/bookings/<%= booking._id %>" class="btn-action btn-invoice">
+                          <i class="fas fa-receipt"></i>
+                          <span>View Receipt</span>
+                        </a>
+                      <% } %>
+                      <a href="/bookings/<%= booking._id %>" class="btn-action btn-view">
+                        <i class="fas fa-eye"></i>
+                        <span>Details</span>
+                      </a>
+                    </div>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <div class="empty-state">
+                  <div class="empty-icon">
+                    <i class="fas fa-calendar-times"></i>
+                  </div>
+                  <h3>No bookings assigned yet</h3>
+                  <p>Your bookings will appear here once customers book your services.</p>
+                </div>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Earnings Tab -->
+          <div class="tab-content" id="earnings-tab">
+            <div class="content-header">
+              <h3 class="content-title">Earnings Overview</h3>
+            </div>
+            
+            <div class="earnings-summary">
+              <div class="earnings-card">
+                <div class="earnings-icon">
+                  <i class="fas fa-wallet"></i>
+                </div>
+                <div class="earnings-data">
+                  <p class="earnings-label">Total Earnings</p>
+                  <h2 class="earnings-amount">₹<%= bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.totalAmount || 0), 0) %></h2>
+                </div>
+              </div>
+              
+              <div class="earnings-card">
+                <div class="earnings-icon">
+                  <i class="fas fa-calendar-week"></i>
+                </div>
+                <div class="earnings-data">
+                  <p class="earnings-label">This Week</p>
+                  <h2 class="earnings-amount">₹<%= bookings.filter(b => {
+                    const weekAgo = new Date();
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    return b.status === 'completed' && new Date(b.completedAt || b.createdAt) >= weekAgo;
+                  }).reduce((sum, b) => sum + (b.totalAmount || 0), 0) %></h2>
+                </div>
+              </div>
+              
+              <div class="earnings-card">
+                <div class="earnings-icon">
+                  <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="earnings-data">
+                  <p class="earnings-label">This Month</p>
+                  <h2 class="earnings-amount">₹<%= bookings.filter(b => {
+                    const thisMonth = new Date().getMonth();
+                    return b.status === 'completed' && new Date(b.completedAt || b.createdAt).getMonth() === thisMonth;
+                  }).reduce((sum, b) => sum + (b.totalAmount || 0), 0) %></h2>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/professional-dashboard.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/socket-client.js"></script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+  
+  <% if (success) { %>
+    <div class="alert alert-success"><%= success %></div>
+  <% } %>
+  
+  <% if (error) { %>
+    <div class="alert alert-error"><%= error %></div>
+  <% } %>
+  
+  <div class="container">
+    <div class="page-header">
+      <h1>My Bookings</h1>
+    </div>
+    
+    <% if (bookings.length > 0) { %>
+      <div class="bookings-list">
+        <% bookings.forEach(booking => { %>
+          <% 
+            const customerId = booking.customer?._id || booking.customerId;
+            const professionalId = booking.professional?._id || booking.professionalId;
+            const userId = user?._id || user?.id;
+            const isCustomer = userId && customerId && userId.toString() === customerId.toString();
+          %>
+          <div class="booking-card" id="booking-<%= booking._id.toString() %>" data-booking-id="<%= booking._id.toString() %>">
+            
+            <% if (booking.status === 'awaiting-payment' && isCustomer) { %>
+              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 20px; border-radius: 8px 8px 0 0; margin: -1px -1px 15px -1px; text-align: center; font-weight: 600;">
+                <i class="fas fa-exclamation-circle"></i> Payment Required - Professional Accepted Your Booking!
+              </div>
+            <% } %>
+            
+            <div class="booking-header">
+              <div>
+                <h3><%= booking.service.name %></h3>
+                <p class="booking-id">Booking ID: <%= booking._id %></p>
+              </div>
+              <span class="status-badge status-<%= booking.status %>"><%= booking.status %></span>
+            </div>
+            
+            <div class="booking-details">
+              <div class="booking-info">
+                <div class="info-item">
+                  <i class="fas fa-calendar"></i>
+                  <span><%= new Date(booking.scheduledDate).toLocaleDateString() %></span>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-clock"></i>
+                  <span><%= booking.scheduledTime %></span>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-rupee-sign"></i>
+                  <span>₹<%= booking.totalAmount %></span>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-map-marker-alt"></i>
+                  <span><%= booking.address.city %>, <%= booking.address.state %></span>
+                </div>
+              </div>
+              
+              <% if (booking.professional) { %>
+                <div class="professional-info">
+                  <img src="<%= booking.professional.profileImage %>" alt="<%= booking.professional.name %>">
+                  <div>
+                    <strong><%= booking.professional.name %></strong>
+                    <p><%= booking.professional.profession %></p>
+                    <% if (booking.professional.rating > 0) { %>
+                      <span class="rating">
+                        <i class="fas fa-star"></i> <%= booking.professional.rating.toFixed(1) %>
+                      </span>
+                    <% } %>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+            
+            <div class="booking-actions">
+              <a href="/bookings/<%= booking._id %>" class="btn btn-small btn-outline">View Details</a>
+              
+              <% if (booking.status === 'awaiting-payment' && isCustomer) { %>
+                <a href="/bookings/<%= booking._id %>/payment" class="btn btn-small" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600;">
+                  <i class="fas fa-credit-card"></i> Pay Now
+                </a>
+              <% } %>
+              
+              <% if (booking.status === 'pending' || booking.status === 'confirmed') { %>
+                <form action="/bookings/<%= booking._id %>/cancel" method="POST" style="display: inline;">
+                  <button type="submit" class="btn btn-small btn-danger" onclick="return confirm('Are you sure you want to cancel this booking?')">Cancel</button>
+                </form>
+              <% } %>
+              <% if (booking.status === 'completed' && !booking.rating) { %>
+                <button class="btn btn-small btn-primary" onclick="openReviewModal('<%= booking._id %>')">Rate Service</button>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        <i class="fas fa-calendar-times"></i>
+        <h3>No bookings yet</h3>
+        <p>Start by booking a service</p>
+        <a href="/services" class="btn btn-primary">Browse Services</a>
+      </div>
+    <% } %>
+  </div>
+  
+  <!-- Review Modal -->
+  <div id="reviewModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeReviewModal()">&times;</span>
+      <h2>Rate Your Service</h2>
+      <form id="reviewForm" method="POST">
+        <div class="form-group">
+          <label>Rating</label>
+          <div class="star-rating">
+            <input type="radio" name="rating" value="5" id="star5" required>
+            <label for="star5"><i class="fas fa-star"></i></label>
+            <input type="radio" name="rating" value="4" id="star4">
+            <label for="star4"><i class="fas fa-star"></i></label>
+            <input type="radio" name="rating" value="3" id="star3">
+            <label for="star3"><i class="fas fa-star"></i></label>
+            <input type="radio" name="rating" value="2" id="star2">
+            <label for="star2"><i class="fas fa-star"></i></label>
+            <input type="radio" name="rating" value="1" id="star1">
+            <label for="star1"><i class="fas fa-star"></i></label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="review">Your Review</label>
+          <textarea id="review" name="review" rows="4" required></textarea>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Submit Review</button>
+      </form>
+    </div>
+  </div>
+  
+  <%- include('../partials/footer') %>
+  
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/main.js"></script>
+  <script>
+    function openReviewModal(bookingId) {
+      document.getElementById('reviewModal').style.display = 'block';
+      document.getElementById('reviewForm').action = '/bookings/' + bookingId + '/review';
+    }
+    
+    function closeReviewModal() {
+      document.getElementById('reviewModal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

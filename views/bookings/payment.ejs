@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= title %> - Skill Serve</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    .payment-container {
+      max-width: 700px;
+      margin: 50px auto;
+      padding: 30px;
+    }
+
+    .booking-summary {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    .booking-summary h2 {
+      margin: 0 0 20px 0;
+      color: #333;
+      font-size: 24px;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+      padding-top: 15px;
+      margin-top: 10px;
+      border-top: 2px solid #667eea;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .payment-methods {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .payment-methods h3 {
+      margin: 0 0 20px 0;
+      color: #333;
+    }
+
+    .payment-option {
+      border: 2px solid #ddd;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .payment-option:hover {
+      border-color: #667eea;
+      background: #f8f9ff;
+    }
+
+    .payment-option.selected {
+      border-color: #667eea;
+      background: #f8f9ff;
+    }
+
+    .payment-option input[type="radio"] {
+      margin-right: 15px;
+      width: 20px;
+      height: 20px;
+    }
+
+    .payment-option label {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .payment-option .icon {
+      font-size: 24px;
+      margin-right: 15px;
+    }
+
+    .payment-option .details {
+      color: #666;
+      font-size: 14px;
+      margin-top: 8px;
+      margin-left: 59px;
+    }
+
+    .wallet-balance {
+      background: #e8f5e9;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+      margin-left: 59px;
+    }
+
+    .insufficient-balance {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    .pay-button {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 25px;
+      transition: transform 0.2s;
+    }
+
+    .pay-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .pay-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: #667eea;
+      text-decoration: none;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+  </style>
+</head>
+<body>
+  <%- include('../partials/header') %>
+
+  <div class="payment-container">
+    <a href="/bookings/<%= booking._id %>" class="back-link">← Back to Booking</a>
+
+    <div class="alert alert-success">
+      ✅ <strong><%= booking.professionalId.name %></strong> accepted your booking! Complete payment to confirm.
+    </div>
+
+    <!-- Booking Summary -->
+    <div class="booking-summary">
+      <h2>📋 Booking Summary</h2>
+      <div class="summary-row">
+        <span>Service:</span>
+        <strong><%= booking.serviceId.name %></strong>
+      </div>
+      <div class="summary-row">
+        <span>Professional:</span>
+        <strong><%= booking.professionalId.name %></strong>
+      </div>
+      <div class="summary-row">
+        <span>Date & Time:</span>
+        <strong><%= new Date(booking.scheduledDate).toLocaleDateString() %> at <%= booking.scheduledTime %></strong>
+      </div>
+      <div class="summary-row">
+        <span>Service Fee:</span>
+        <strong>₹<%= booking.totalPrice.toFixed(2) %></strong>
+      </div>
+      <div class="summary-row">
+        <span>Total Amount:</span>
+        <strong>₹<%= booking.totalPrice.toFixed(2) %></strong>
+      </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="payment-methods">
+      <h3>💳 Choose Payment Method</h3>
+
+      <!-- Wallet Payment -->
+      <div class="payment-option" id="wallet-option">
+        <label>
+          <input type="radio" name="payment" value="wallet" id="payment-wallet">
+          <span class="icon">💰</span>
+          <span>Pay with Wallet</span>
+        </label>
+        <div class="details">
+          <% if (wallet && wallet.balance >= booking.totalPrice) { %>
+            <div class="wallet-balance">
+              Available Balance: ₹<%= wallet.balance.toFixed(2) %>
+            </div>
+          <% } else { %>
+            <div class="wallet-balance insufficient-balance">
+              ❌ Insufficient Balance: ₹<%= (wallet?.balance || 0).toFixed(2) %>
+              <br>
+              <small>Top up your wallet to use this payment method</small>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Online Payment (Stripe) -->
+      <div class="payment-option" id="online-option">
+        <label>
+          <input type="radio" name="payment" value="online" id="payment-online">
+          <span class="icon">💳</span>
+          <span>Pay Online (Card)</span>
+        </label>
+        <div class="details">
+          Secure payment via Stripe. Supports all major credit/debit cards.
+        </div>
+      </div>
+
+      <!-- Cash on Delivery -->
+      <div class="payment-option" id="cod-option">
+        <label>
+          <input type="radio" name="payment" value="cash" id="payment-cod">
+          <span class="icon">💵</span>
+          <span>Cash on Delivery</span>
+        </label>
+        <div class="details">
+          Pay cash after service completion. Amount: ₹<%= booking.totalPrice.toFixed(2) %>
+        </div>
+      </div>
+
+      <button class="pay-button" id="pay-now-btn" disabled>
+        Select a payment method
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const bookingId = '<%= booking._id %>';
+    const totalAmount = <%= booking.totalPrice %>;
+    const walletBalance = <%= wallet?.balance || 0 %>;
+    const hasWalletBalance = walletBalance >= totalAmount;
+
+    let selectedPaymentMethod = null;
+
+    // Handle payment option selection
+    document.querySelectorAll('input[name="payment"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        selectedPaymentMethod = e.target.value;
+        
+        // Update UI
+        document.querySelectorAll('.payment-option').forEach(opt => {
+          opt.classList.remove('selected');
+        });
+        e.target.closest('.payment-option').classList.add('selected');
+
+        // Update button
+        const btn = document.getElementById('pay-now-btn');
+        btn.disabled = false;
+        
+        if (selectedPaymentMethod === 'wallet') {
+          if (!hasWalletBalance) {
+            btn.disabled = true;
+            btn.textContent = '❌ Insufficient Wallet Balance';
+          } else {
+            btn.textContent = '💰 Pay ₹' + totalAmount.toFixed(2) + ' with Wallet';
+          }
+        } else if (selectedPaymentMethod === 'online') {
+          btn.textContent = '💳 Pay ₹' + totalAmount.toFixed(2) + ' Online';
+        } else if (selectedPaymentMethod === 'cash') {
+          btn.textContent = '💵 Confirm Cash on Delivery';
+        }
+      });
+    });
+
+    // Handle payment button click
+    document.getElementById('pay-now-btn').addEventListener('click', async () => {
+      if (!selectedPaymentMethod) {
+        alert('Please select a payment method');
+        return;
+      }
+
+      const btn = document.getElementById('pay-now-btn');
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+
+      try {
+        const response = await fetch(`/bookings/${bookingId}/process-payment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            paymentMethod: selectedPaymentMethod
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          if (result.sessionUrl) {
+            // Redirect to Stripe
+            window.location.href = result.sessionUrl;
+          } else {
+            // Payment completed (wallet or COD)
+            alert('✅ ' + result.message);
+            window.location.href = `/bookings/${bookingId}`;
+          }
+        } else {
+          throw new Error(result.error || 'Payment failed');
+        }
+      } catch (error) {
+        console.error('Payment error:', error);
+        alert('❌ ' + error.message);
+        btn.disabled = false;
+        
+        // Restore button text
+        if (selectedPaymentMethod === 'wallet') {
+          btn.textContent = '💰 Pay ₹' + totalAmount.toFixed(2) + ' with Wallet';
+        } else if (selectedPaymentMethod === 'online') {
+          btn.textContent = '💳 Pay ₹' + totalAmount.toFixed(2) + ' Online';
+        } else if (selectedPaymentMethod === 'cash') {
+          btn.textContent = '💵 Confirm Cash on Delivery';
+        }
+      }
+    });
+
+    // Disable wallet option if insufficient balance
+    <% if (wallet && wallet.balance < booking.totalPrice) { %>
+      document.getElementById('payment-wallet').disabled = true;
+      document.getElementById('wallet-option').style.opacity = '0.6';
+      document.getElementById('wallet-option').style.cursor = 'not-allowed';
+    <% } %>
+  </script>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

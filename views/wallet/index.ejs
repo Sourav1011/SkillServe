@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | Skill Serve</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .wallet-container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .wallet-header {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 3rem 2rem;
+      border-radius: var(--radius-lg);
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .wallet-balance {
+      text-align: center;
+    }
+
+    .balance-label {
+      font-size: 1rem;
+      opacity: 0.9;
+      margin-bottom: 0.5rem;
+    }
+
+    .balance-amount {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+    }
+
+    .wallet-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .wallet-btn {
+      background: white;
+      color: var(--primary-color);
+      padding: 0.875rem 2rem;
+      border: none;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .wallet-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .wallet-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .stat-icon.earnings {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .stat-icon.spent {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+
+    .stat-icon.transactions {
+      background: #DBEAFE;
+      color: #2563EB;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .transactions-section {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .section-header h2 {
+      font-size: 1.5rem;
+      color: var(--text-primary);
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .filter-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .filter-btn.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+
+    .transactions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .transaction-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .transaction-item:hover {
+      box-shadow: var(--shadow-sm);
+      transform: translateX(5px);
+    }
+
+    .transaction-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .transaction-icon {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+
+    .transaction-icon.credit {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .transaction-icon.debit {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+
+    .transaction-details h4 {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .transaction-details p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .transaction-amount {
+      text-align: right;
+    }
+
+    .amount {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .amount.credit {
+      color: #059669;
+    }
+
+    .amount.debit {
+      color: #DC2626;
+    }
+
+    .transaction-date {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius-lg);
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-header h3 {
+      font-size: 1.5rem;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 0.875rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 1rem;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .submit-btn:hover {
+      background: var(--secondary-color);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <!-- Hidden user data for Socket.IO -->
+  <div id="userData" data-user-id="<%= user._id %>" data-user-role="<%= user.role %>" style="display: none;"></div>
+
+  <%- include('../partials/header') %>
+
+  <div class="wallet-container">
+    <!-- Success/Error Messages -->
+    <% if (success) { %>
+      <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 1rem 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 1rem;">
+        <i class="fas fa-check-circle" style="font-size: 1.5rem;"></i>
+        <span><%= success %></span>
+      </div>
+    <% } %>
+    <% if (error) { %>
+      <div style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 1rem 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 1rem;">
+        <i class="fas fa-exclamation-circle" style="font-size: 1.5rem;"></i>
+        <span><%= error %></span>
+      </div>
+    <% } %>
+    <% if (typeof cancelled !== 'undefined' && cancelled === 'true') { %>
+      <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 1rem 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 1rem;">
+        <i class="fas fa-info-circle" style="font-size: 1.5rem;"></i>
+        <span>Payment was cancelled. No money was charged.</span>
+      </div>
+    <% } %>
+
+    <!-- Wallet Header with Balance -->
+    <div class="wallet-header">
+      <div class="wallet-balance">
+        <div class="balance-label">Your Balance</div>
+        <div class="balance-amount">₹<%= wallet.balance.toFixed(2) %></div>
+        <div class="wallet-actions">
+          <button class="wallet-btn" onclick="openAddMoneyModal()">
+            <i class="fas fa-plus-circle"></i> Add Money
+          </button>
+          <button class="wallet-btn" onclick="openTransferModal()">
+            <i class="fas fa-exchange-alt"></i> Transfer Money
+          </button>
+          <button class="wallet-btn" onclick="window.location.href='/bookings/create'">
+            <i class="fas fa-shopping-cart"></i> Book Service
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wallet Statistics -->
+    <div class="wallet-stats">
+      <div class="stat-card">
+        <div class="stat-icon earnings">
+          <i class="fas fa-arrow-down"></i>
+        </div>
+        <div class="stat-label">Total Earnings</div>
+        <div class="stat-value">₹<%= wallet.totalEarnings.toFixed(2) %></div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon spent">
+          <i class="fas fa-arrow-up"></i>
+        </div>
+        <div class="stat-label">Total Spent</div>
+        <div class="stat-value">₹<%= (wallet.totalSpent || 0).toFixed(2) %></div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon transactions">
+          <i class="fas fa-exchange-alt"></i>
+        </div>
+        <div class="stat-label">Total Transactions</div>
+        <div class="stat-value"><%= wallet.transactions.length %></div>
+      </div>
+    </div>
+
+    <!-- Transactions Section -->
+    <div class="transactions-section">
+      <div class="section-header">
+        <h2><i class="fas fa-history"></i> Transaction History</h2>
+        <div class="filter-buttons">
+          <button class="filter-btn active" onclick="filterTransactions('all')">All</button>
+          <button class="filter-btn" onclick="filterTransactions('credit')">Credit</button>
+          <button class="filter-btn" onclick="filterTransactions('debit')">Debit</button>
+        </div>
+      </div>
+
+      <div class="transactions-list" id="transactionsList">
+        <% if (wallet.transactions && wallet.transactions.length > 0) { %>
+          <% wallet.transactions.slice().reverse().forEach(transaction => { %>
+            <div class="transaction-item" data-type="<%= transaction.type %>">
+              <div class="transaction-info">
+                <div class="transaction-icon <%= transaction.type %>">
+                  <% if (transaction.type === 'credit') { %>
+                    <i class="fas fa-arrow-down"></i>
+                  <% } else { %>
+                    <i class="fas fa-arrow-up"></i>
+                  <% } %>
+                </div>
+                <div class="transaction-details">
+                  <h4><%= transaction.description %></h4>
+                  <p><%= transaction.paymentMethod || 'Wallet' %></p>
+                </div>
+              </div>
+              <div class="transaction-amount">
+                <div class="amount <%= transaction.type %>">
+                  <%= transaction.type === 'credit' ? '+' : '-' %>₹<%= transaction.amount.toFixed(2) %>
+                </div>
+                <div class="transaction-date">
+                  <%= new Date(transaction.timestamp || transaction.createdAt).toLocaleDateString() %>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="empty-state">
+            <i class="fas fa-wallet"></i>
+            <h3>No transactions yet</h3>
+            <p>Your transaction history will appear here</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Money Modal -->
+  <div class="modal" id="addMoneyModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-plus-circle"></i> Add Money to Wallet</h3>
+        <button class="close-modal" onclick="closeAddMoneyModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form id="addMoneyForm" onsubmit="addMoney(event)">
+        <div class="form-group">
+          <label for="amount">Amount (₹)</label>
+          <input type="number" id="amount" name="amount" min="1" max="100000" step="1" placeholder="Enter amount" required autocomplete="off">
+          <small id="amountHelp" style="display: block; margin-top: 0.5rem; color: #666;">For card payments: Minimum ₹42 (Stripe requirement)</small>
+        </div>
+        <div class="form-group">
+          <label for="paymentMethod">Payment Method</label>
+          <select id="paymentMethod" name="paymentMethod" required>
+            <option value="test" selected>🧪 Test Mode (Instant Add - No Payment)</option>
+            <option value="card" disabled>💳 Credit/Debit Card (Not Configured)</option>
+          </select>
+          <small style="color: #10b981; display: block; margin-top: 0.5rem;">
+            ✅ Test Mode: Money added instantly to your wallet
+          </small>
+        </div>
+        <button type="submit" class="submit-btn">
+          <i class="fas fa-check-circle"></i> Add Money
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Transfer Money Modal -->
+  <div class="modal" id="transferModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-exchange-alt"></i> Transfer Money</h3>
+        <button class="close-modal" onclick="closeTransferModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form id="transferForm" onsubmit="transferMoney(event)">
+        <div class="form-group">
+          <label for="recipientEmail">Recipient Email</label>
+          <input type="email" id="recipientEmail" name="recipientEmail" placeholder="recipient@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="transferAmount">Amount (₹)</label>
+          <input type="number" id="transferAmount" name="transferAmount" min="1" max="<%= wallet.balance %>" step="1" placeholder="Enter amount" required autocomplete="off">
+          <small style="color: #666; display: block; margin-top: 0.5rem;">Available balance: ₹<%= wallet.balance.toFixed(2) %></small>
+        </div>
+        <div class="form-group">
+          <label for="transferDescription">Description (Optional)</label>
+          <input type="text" id="transferDescription" name="transferDescription" placeholder="What is this for?">
+        </div>
+        <button type="submit" class="submit-btn">
+          <i class="fas fa-paper-plane"></i> Transfer Money
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/socket-client.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/chatbot-widget.js"></script>
+  <script src="/js/main.js"></script>
+
+  <script>
+    function openAddMoneyModal() {
+      document.getElementById('addMoneyModal').classList.add('active');
+      // Reset form
+      document.getElementById('addMoneyForm').reset();
+    }
+
+    function closeAddMoneyModal() {
+      document.getElementById('addMoneyModal').classList.remove('active');
+    }
+
+    // Set default help text for test mode
+    document.addEventListener('DOMContentLoaded', () => {
+      const amountInput = document.getElementById('amount');
+      const amountHelp = document.getElementById('amountHelp');
+      
+      if (amountInput && amountHelp) {
+        amountInput.setAttribute('min', '1');
+        amountHelp.textContent = 'Test mode - any amount (₹1 - ₹100,000)';
+        amountHelp.style.color = '#10b981';
+      }
+    });
+
+    async function addMoney(event) {
+      event.preventDefault();
+      
+      const form = event.target;
+      const formData = new FormData(form);
+      const amount = parseFloat(formData.get('amount'));
+      const paymentMethod = formData.get('paymentMethod');
+      
+      if (!amount || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+      }
+
+      // Only test mode is available
+      if (paymentMethod === 'card') {
+        alert('Card payments are not configured. Please use Test Mode.');
+        return;
+      }
+
+      try {
+        // Test mode - direct add
+        const response = await fetch('/wallet/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            amount: parseFloat(amount),
+            paymentMethod: 'test',
+            transactionId: 'TEST-' + Date.now()
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alert('✅ ₹' + amount + ' added successfully to your wallet!');
+          location.reload();
+        } else {
+          alert(data.error || 'Failed to add money');
+        }
+      } catch (error) {
+        console.error('Error adding money:', error);
+        alert('Failed to add money. Please try again.');
+      }
+    }
+
+    function openTransferModal() {
+      document.getElementById('transferModal').classList.add('active');
+    }
+
+    function closeTransferModal() {
+      document.getElementById('transferModal').classList.remove('active');
+    }
+
+    async function transferMoney(event) {
+      event.preventDefault();
+      
+      const form = event.target;
+      const formData = new FormData(form);
+      const recipientEmail = formData.get('recipientEmail');
+      const amount = formData.get('transferAmount');
+      const description = formData.get('transferDescription');
+      
+      if (!recipientEmail || !amount || amount <= 0) {
+        alert('Please fill all required fields');
+        return;
+      }
+
+      if (confirm(`Transfer ₹${amount} to ${recipientEmail}?`)) {
+        try {
+          const response = await fetch('/wallet/transfer', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              recipientEmail,
+              amount: parseFloat(amount),
+              description
+            })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert(data.message || 'Money transferred successfully!');
+            closeTransferModal();
+            location.reload();
+          } else {
+            alert(data.error || 'Failed to transfer money');
+          }
+        } catch (error) {
+          console.error('Error transferring money:', error);
+          alert('Failed to transfer money. Please try again.');
+        }
+      }
+    }
+
+    // Real-time wallet updates via Socket.IO
+    if (typeof socket !== 'undefined') {
+      socket.on('wallet-updated', (data) => {
+        console.log('Wallet updated:', data);
+        
+        // Show notification
+        const message = data.message || `₹${data.amount} ${data.type === 'credit' ? 'added to' : 'deducted from'} wallet`;
+        
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 80px;
+          right: 20px;
+          background: ${data.type === 'credit' ? '#10b981' : '#ef4444'};
+          color: white;
+          padding: 1rem 1.5rem;
+          border-radius: 8px;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          z-index: 10000;
+          animation: slideIn 0.3s ease;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+          notification.remove();
+          location.reload(); // Refresh to show updated balance
+        }, 5000);
+      });
+    }
+
+    // Close modals when clicking outside
+    window.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal')) {
+        closeAddMoneyModal();
+        closeTransferModal();
+      }
+    });
+
+    function filterTransactions(type) {
+      const items = document.querySelectorAll('.transaction-item');
+      const buttons = document.querySelectorAll('.filter-btn');
+      
+      // Update active button
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      // Filter transactions
+      items.forEach(item => {
+        if (type === 'all' || item.dataset.type === type) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    // Close modal on outside click
+    document.getElementById('addMoneyModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeAddMoneyModal();
+      }
+    });
+  </script>
+</body>
+</html>

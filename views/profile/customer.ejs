@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Account | SkillServe</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Hidden user data for Socket.IO -->
+  <div id="userData" data-user-id="<%= user._id %>" data-user-role="<%= user.role %>" style="display: none;"></div>
+  
+  <%- include('../partials/header') %>
+  
+  <!-- Customer Dashboard -->
+  <section class="dashboard-section">
+    <div class="container">
+      <!-- Dashboard Header -->
+      <div class="dashboard-header">
+        <div class="user-welcome">
+          <h1>My Account</h1>
+          <p>Manage your bookings and profile</p>
+        </div>
+        <div class="user-avatar-header">
+          <img src="<%= user.profileImage || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=2E3192&color=fff&size=80' %>" alt="<%= user.name %>">
+          <div>
+            <strong><%= user.name %></strong>
+            <span><%= user.email %></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Tabs -->
+      <div class="dashboard-tabs">
+        <button class="tab-btn active" onclick="switchTab('bookings')">
+          <i class="fas fa-calendar-check"></i>
+          My Bookings
+        </button>
+        <button class="tab-btn" onclick="switchTab('profile')">
+          <i class="fas fa-user"></i>
+          Profile Details
+        </button>
+        <button class="tab-btn" onclick="switchTab('addresses')">
+          <i class="fas fa-map-marker-alt"></i>
+          Saved Addresses
+        </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="dashboard-content">
+        <!-- Bookings Tab -->
+        <div class="tab-content active" id="bookings-tab">
+          <div class="content-header">
+            <h2>My Bookings</h2>
+            <div class="booking-filters">
+              <button class="filter-btn active" onclick="filterBookings('all')">All</button>
+              <button class="filter-btn" onclick="filterBookings('pending')">Pending</button>
+              <button class="filter-btn" onclick="filterBookings('confirmed')">Confirmed</button>
+              <button class="filter-btn" onclick="filterBookings('completed')">Completed</button>
+              <button class="filter-btn" onclick="filterBookings('cancelled')">Cancelled</button>
+            </div>
+          </div>
+
+          <div class="bookings-grid">
+            <% if (bookings && bookings.length > 0) { %>
+              <% bookings.forEach(booking => { %>
+                <div class="booking-card" data-status="<%= booking.status %>">
+                  <div class="booking-header-card">
+                    <div class="booking-service-info">
+                      <img src="<%= booking.service.image || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=200' %>" alt="<%= booking.service.name %>">
+                      <div>
+                        <h3><%= booking.service.name %></h3>
+                        <span class="service-category"><%= booking.service.category %></span>
+                      </div>
+                    </div>
+                    <span class="status-badge status-<%= booking.status %>"><%= booking.status %></span>
+                  </div>
+
+                  <div class="booking-details-grid">
+                    <div class="detail-item-booking">
+                      <i class="fas fa-calendar"></i>
+                      <div>
+                        <span class="detail-label">Date</span>
+                        <strong><%= new Date(booking.scheduledDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></strong>
+                      </div>
+                    </div>
+
+                    <div class="detail-item-booking">
+                      <i class="fas fa-clock"></i>
+                      <div>
+                        <span class="detail-label">Time</span>
+                        <strong><%= booking.scheduledTime %></strong>
+                      </div>
+                    </div>
+
+                    <div class="detail-item-booking">
+                      <i class="fas fa-rupee-sign"></i>
+                      <div>
+                        <span class="detail-label">Amount</span>
+                        <strong>₹<%= booking.totalAmount %></strong>
+                      </div>
+                    </div>
+
+                    <% if (booking.provider) { %>
+                    <div class="detail-item-booking">
+                      <i class="fas fa-user-tie"></i>
+                      <div>
+                        <span class="detail-label">Provider</span>
+                        <strong><%= booking.provider.name %></strong>
+                      </div>
+                    </div>
+                    <% } %>
+                  </div>
+
+                  <div class="booking-address">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span><%= booking.address.street %>, <%= booking.address.city %>, <%= booking.address.state %> <%= booking.address.zipCode %></span>
+                  </div>
+
+                  <div class="booking-actions">
+                    <a href="/bookings/<%= booking._id %>" class="btn btn-outline btn-sm">View Details</a>
+                    <% if (booking.status === 'pending' || booking.status === 'confirmed') { %>
+                      <button class="btn btn-danger btn-sm" onclick="cancelBooking('<%= booking._id %>')">Cancel Booking</button>
+                    <% } %>
+                    <% if (booking.status === 'completed') { %>
+                      <button class="btn btn-primary btn-sm" onclick="openReviewModal('<%= booking._id %>', '<%= booking.service.name %>')">Write Review</button>
+                    <% } %>
+                  </div>
+                </div>
+              <% }); %>
+            <% } else { %>
+              <div class="empty-state">
+                <i class="fas fa-calendar-times"></i>
+                <h3>No Bookings Yet</h3>
+                <p>Book a service to see your bookings here</p>
+                <a href="/services" class="btn btn-primary">Browse Services</a>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Profile Tab -->
+        <div class="tab-content" id="profile-tab">
+          <div class="content-header">
+            <h2>Profile Details</h2>
+          </div>
+
+          <div class="profile-edit-card">
+            <form action="/profile/update" method="POST" enctype="multipart/form-data">
+              <div class="profile-avatar-section">
+                <img src="<%= user.profileImage || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=2E3192&color=fff&size=120' %>" alt="<%= user.name %>" class="avatar-preview" id="avatarPreview">
+                <div>
+                  <label for="profileImage" class="btn btn-outline btn-sm">
+                    <i class="fas fa-camera"></i> Change Photo
+                  </label>
+                  <input type="file" id="profileImage" name="profileImage" accept="image/*" style="display: none;" onchange="previewAvatar(event)">
+                  <p class="form-hint">JPG, PNG or GIF. Max size 2MB</p>
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="name">Full Name *</label>
+                  <input type="text" id="name" name="name" value="<%= user.name %>" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="email">Email Address</label>
+                  <input type="email" value="<%= user.email %>" disabled>
+                  <p class="form-hint">Email cannot be changed</p>
+                </div>
+
+                <div class="form-group">
+                  <label for="phone">Phone Number *</label>
+                  <input type="tel" id="phone" name="phone" value="<%= user.phone %>" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="gender">Gender</label>
+                  <select id="gender" name="gender">
+                    <option value="">Select Gender</option>
+                    <option value="male" <%= user.gender === 'male' ? 'selected' : '' %>>Male</option>
+                    <option value="female" <%= user.gender === 'female' ? 'selected' : '' %>>Female</option>
+                    <option value="other" <%= user.gender === 'other' ? 'selected' : '' %>>Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-actions-profile">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i> Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Addresses Tab -->
+        <div class="tab-content" id="addresses-tab">
+          <div class="content-header">
+            <h2>Saved Addresses</h2>
+            <button class="btn btn-primary" onclick="openAddAddressModal()">
+              <i class="fas fa-plus"></i> Add New Address
+            </button>
+          </div>
+
+          <div class="addresses-grid">
+            <div class="address-item-card">
+              <div class="address-item-header">
+                <div class="address-type">
+                  <i class="fas fa-home"></i>
+                  <strong>Home</strong>
+                </div>
+                <span class="default-badge">Default</span>
+              </div>
+              <p class="address-item-text">123 Main Street, Apartment 4B<br>Mumbai, Maharashtra 400001<br>India</p>
+              <div class="address-item-actions">
+                <button class="btn-text" onclick="editAddress('home')"><i class="fas fa-edit"></i> Edit</button>
+                <button class="btn-text text-danger"><i class="fas fa-trash"></i> Delete</button>
+              </div>
+            </div>
+
+            <div class="address-item-card">
+              <div class="address-item-header">
+                <div class="address-type">
+                  <i class="fas fa-briefcase"></i>
+                  <strong>Work</strong>
+                </div>
+              </div>
+              <p class="address-item-text">456 Business Park, Office 12<br>Pune, Maharashtra 411001<br>India</p>
+              <div class="address-item-actions">
+                <button class="btn-text" onclick="editAddress('work')"><i class="fas fa-edit"></i> Edit</button>
+                <button class="btn-text text-danger"><i class="fas fa-trash"></i> Delete</button>
+              </div>
+            </div>
+
+            <div class="address-item-card add-new-card">
+              <button class="add-address-btn" onclick="openAddAddressModal()">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add New Address</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+  .dashboard-section {
+    padding: 2rem 0;
+    background: var(--bg-light);
+    min-height: calc(100vh - 200px);
+  }
+
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #2E3192 0%, #1BFFFF 100%);
+    border-radius: var(--radius-lg);
+    color: white;
+  }
+
+  .user-welcome h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .user-welcome p {
+    opacity: 0.9;
+  }
+
+  .user-avatar-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .user-avatar-header img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid white;
+  }
+
+  .user-avatar-header strong {
+    display: block;
+    font-size: 1.25rem;
+  }
+
+  .user-avatar-header span {
+    opacity: 0.9;
+    font-size: 0.9rem;
+  }
+
+  /* Tabs */
+  .dashboard-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .tab-btn {
+    padding: 1rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .tab-btn:hover {
+    color: var(--primary-color);
+  }
+
+  .tab-btn.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .content-header h2 {
+    font-size: 1.5rem;
+  }
+
+  /* Booking Filters */
+  .booking-filters {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .filter-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+  }
+
+  .filter-btn:hover,
+  .filter-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+  }
+
+  /* Bookings Grid */
+  .bookings-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .booking-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.2s ease;
+  }
+
+  .booking-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  }
+
+  .booking-header-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .booking-service-info {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .booking-service-info img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+  }
+
+  .booking-service-info h3 {
+    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .service-category {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: var(--bg-light);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .status-pending {
+    background: #FFF3CD;
+    color: #856404;
+  }
+
+  .status-confirmed {
+    background: #D1ECF1;
+    color: #0C5460;
+  }
+
+  .status-completed {
+    background: #D4EDDA;
+    color: #155724;
+  }
+
+  .status-cancelled {
+    background: #F8D7DA;
+    color: #721C24;
+  }
+
+  .booking-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .detail-item-booking {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .detail-item-booking i {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-light);
+    border-radius: var(--radius-sm);
+    color: var(--primary-color);
+  }
+
+  .detail-label {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .booking-address {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--bg-light);
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .booking-actions {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .btn-sm {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  /* Profile Edit */
+  .profile-edit-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .profile-avatar-section {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .avatar-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--border);
+  }
+
+  .form-hint {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--dark);
+  }
+
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 0.875rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+  }
+
+  .form-group input:disabled {
+    background: var(--bg-light);
+    color: var(--text-secondary);
+  }
+
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+  }
+
+  .form-actions-profile {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  /* Addresses Grid */
+  .addresses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .address-item-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .address-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .address-type {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .address-type i {
+    color: var(--primary-color);
+  }
+
+  .default-badge {
+    padding: 0.25rem 0.75rem;
+    background: var(--success-color);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .address-item-text {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .address-item-actions {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .btn-text {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .btn-text.text-danger {
+    color: var(--danger-color);
+  }
+
+  .add-new-card {
+    border: 2px dashed var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .add-address-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-color);
+    font-size: 1rem;
+  }
+
+  .add-address-btn i {
+    font-size: 2rem;
+  }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: var(--radius-lg);
+  }
+
+  .empty-state i {
+    font-size: 4rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+  }
+
+  .empty-state h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .dashboard-header {
+      flex-direction: column;
+      gap: 1.5rem;
+      text-align: center;
+    }
+
+    .dashboard-tabs {
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      white-space: nowrap;
+    }
+
+    .booking-filters {
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .content-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .booking-details-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .booking-actions {
+      flex-direction: column;
+    }
+  }
+  </style>
+
+  <script>
+  function switchTab(tabName) {
+    // Remove active class from all tabs and content
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to clicked tab and corresponding content
+    event.target.classList.add('active');
+    document.getElementById(tabName + '-tab').classList.add('active');
+  }
+
+  function filterBookings(status) {
+    // Update filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Filter booking cards
+    document.querySelectorAll('.booking-card').forEach(card => {
+      if (status === 'all' || card.dataset.status === status) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  function cancelBooking(bookingId) {
+    if (confirm('Are you sure you want to cancel this booking?')) {
+      fetch(`/bookings/${bookingId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert('Failed to cancel booking');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to cancel booking');
+      });
+    }
+  }
+
+  function openReviewModal(bookingId, serviceName) {
+    // Review modal functionality to be implemented
+    alert('Review modal for: ' + serviceName);
+  }
+
+  function previewAvatar(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('avatarPreview').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function openAddAddressModal() {
+    alert('Add address modal to be implemented');
+  }
+
+  function editAddress(type) {
+    alert('Edit address for: ' + type);
+  }
+  </script>
+
+  <!-- Socket.IO Client -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/socket-client.js"></script>
+  <script>
+    // Real-time booking status updates
+    socket.on('status-update', (data) => {
+      console.log('Booking status update:', data);
+      
+      const bookingCard = document.querySelector(`[data-booking-id="${data.bookingId}"]`);
+      if (bookingCard) {
+        const statusBadge = bookingCard.querySelector('.status-badge');
+        if (statusBadge) {
+          statusBadge.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+          statusBadge.className = `status-badge status-${data.status}`;
+        }
+        
+        // Update action buttons based on new status
+        const actionsDiv = bookingCard.querySelector('.booking-actions');
+        if (actionsDiv && data.status === 'confirmed') {
+          actionsDiv.innerHTML = '<button class="btn btn-secondary" disabled>Confirmed</button>';
+        } else if (actionsDiv && data.status === 'completed') {
+          actionsDiv.innerHTML = `
+            <button class="btn btn-primary" onclick="openReviewModal('${data.bookingId}', 'Service')">
+              <i class="fas fa-star"></i> Write Review
+            </button>
+          `;
+        }
+      }
+    });
+    
+    // Real-time notifications
+    socket.on('notification', (data) => {
+      console.log('Notification:', data);
+      
+      // Show toast notification if function exists
+      if (typeof showToast === 'function') {
+        showToast(data.message, data.type || 'info');
+      }
+      
+      // If booking-related, refresh the bookings tab
+      if (data.bookingId && document.querySelector('.tab-content.active#bookings-tab')) {
+        setTimeout(() => location.reload(), 2000);
+      }
+    });
+  </script>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

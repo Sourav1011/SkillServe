@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | SkillServe</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+  
+  <!-- Category Banner -->
+  <section class="category-banner">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="/">Home</a>
+        <i class="fas fa-chevron-right"></i>
+        <span><%= category %></span>
+      </div>
+      <h1 class="category-title"><%= category %></h1>
+      <p class="category-description">Professional <%= category.toLowerCase() %> services at your doorstep</p>
+    </div>
+  </section>
+
+  <!-- Filters & Services -->
+  <section class="services-listing-section">
+    <div class="container">
+      <div class="listing-layout">
+        <!-- Sidebar Filters -->
+        <aside class="filters-sidebar">
+          <div class="filter-card">
+            <h3>Sort By</h3>
+            <div class="filter-options">
+              <label class="filter-option">
+                <input type="radio" name="sort" value="popular" <%= currentSort === 'popular' ? 'checked' : '' %> onchange="applyFilters()">
+                <span>Most Popular</span>
+              </label>
+              <label class="filter-option">
+                <input type="radio" name="sort" value="price-low" <%= currentSort === 'price-low' ? 'checked' : '' %> onchange="applyFilters()">
+                <span>Price: Low to High</span>
+              </label>
+              <label class="filter-option">
+                <input type="radio" name="sort" value="price-high" <%= currentSort === 'price-high' ? 'checked' : '' %> onchange="applyFilters()">
+                <span>Price: High to Low</span>
+              </label>
+              <label class="filter-option">
+                <input type="radio" name="sort" value="rating" <%= currentSort === 'rating' ? 'checked' : '' %> onchange="applyFilters()">
+                <span>Highest Rated</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="filter-card">
+            <h3>Rating</h3>
+            <div class="filter-options">
+              <label class="filter-option">
+                <input type="checkbox" value="4" onchange="applyRatingFilter(this)" <%= currentRating >= 4 ? 'checked' : '' %>>
+                <span><i class="fas fa-star"></i> 4★ & above</span>
+              </label>
+              <label class="filter-option">
+                <input type="checkbox" value="4.5" onchange="applyRatingFilter(this)" <%= currentRating >= 4.5 ? 'checked' : '' %>>
+                <span><i class="fas fa-star"></i> 4.5★ & above</span>
+              </label>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Services List -->
+        <div class="services-main-content">
+          <div class="services-count">
+            <span><%= services.length %> Services Available</span>
+          </div>
+
+          <% if (services && services.length > 0) { %>
+            <div class="service-list-container">
+              <% services.forEach(service => { %>
+                <div class="service-list-item">
+                  <div class="service-list-image">
+                    <img src="<%= service.image || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400' %>" alt="<%= service.name %>">
+                    <% if (service.rating >= 4.5) { %>
+                      <span class="service-badge">Bestseller</span>
+                    <% } %>
+                  </div>
+                  
+                  <div class="service-list-content">
+                    <h3><%= service.name %></h3>
+                    <div class="service-rating">
+                      <i class="fas fa-star"></i>
+                      <span><%= service.rating || 4.7 %></span>
+                      <span class="review-count">(<%= service.reviewCount || Math.floor(Math.random() * 5000) + 500 %> reviews)</span>
+                    </div>
+                    <p class="service-brief"><%= service.description.substring(0, 150) %>...</p>
+                    
+                    <div class="service-meta-info">
+                      <span><i class="fas fa-clock"></i> <%= service.duration || 60 %> mins</span>
+                      <span><i class="fas fa-shield-alt"></i> Verified</span>
+                    </div>
+                    
+                    <div class="service-price-row">
+                      <div>
+                        <span class="price-label">Starts at</span>
+                        <span class="price-value">₹<%= service.price %></span>
+                      </div>
+                      <a href="/services/<%= service._id %>" class="btn-view-details">
+                        View Details <i class="fas fa-arrow-right"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div class="empty-services">
+              <i class="fas fa-search"></i>
+              <h3>No services found</h3>
+              <p>Try adjusting your filters or browse other categories</p>
+              <a href="/services" class="btn btn-primary">Browse All Services</a>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+  .category-banner {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #5A67D8 100%);
+    padding: 3rem 0 2rem;
+    color: white;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .breadcrumb a {
+    color: rgba(255,255,255,0.9);
+    text-decoration: none;
+  }
+
+  .breadcrumb i {
+    font-size: 0.75rem;
+    opacity: 0.7;
+  }
+
+  .category-title {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+
+  .category-description {
+    font-size: 1.125rem;
+    opacity: 0.95;
+  }
+
+  .services-listing-section {
+    padding: 3rem 0;
+  }
+
+  .listing-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+  }
+
+  .filters-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .filter-card {
+    background: white;
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .filter-card h3 {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    color: var(--dark);
+  }
+
+  .filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .filter-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    transition: background 0.2s ease;
+  }
+
+  .filter-option:hover {
+    background: var(--bg-light);
+  }
+
+  .filter-option input {
+    cursor: pointer;
+  }
+
+  .filter-option i {
+    color: var(--warning-color);
+  }
+
+  .services-main-content {
+    min-height: 500px;
+  }
+
+  .services-count {
+    padding: 1rem 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .service-badge {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: var(--warning-color);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .empty-services {
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+
+  .empty-services i {
+    font-size: 4rem;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    margin-bottom: 1rem;
+  }
+
+  .empty-services h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+  }
+
+  .empty-services p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 968px) {
+    .listing-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .filters-sidebar {
+      position: sticky;
+      top: 80px;
+      z-index: 50;
+      background: white;
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .filter-card {
+      padding: 1rem;
+    }
+
+    .category-title {
+      font-size: 2rem;
+    }
+  }
+  </style>
+
+  <script>
+  function applyFilters() {
+    const sort = document.querySelector('input[name="sort"]:checked').value;
+    const rating = document.querySelector('input[type="checkbox"]:checked')?.value || '';
+    
+    let url = window.location.pathname + '?sort=' + sort;
+    if (rating) {
+      url += '&rating=' + rating;
+    }
+    
+    window.location.href = url;
+  }
+
+  function applyRatingFilter(checkbox) {
+    // Uncheck other rating checkboxes
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      if (cb !== checkbox) cb.checked = false;
+    });
+    
+    applyFilters();
+  }
+  </script>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

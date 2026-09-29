@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | SkillServe</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #2E3192;
+      --primary-dark: #1f2163;
+      --secondary: #00D4FF;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+      --light: #f8f9fa;
+      --dark: #1f2937;
+      --sidebar-width: 260px;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+    }
+
+    .admin-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .admin-sidebar {
+      width: var(--sidebar-width);
+      background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 1000;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    }
+
+    .admin-logo {
+      padding: 2rem 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      text-align: center;
+    }
+
+    .admin-logo h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .admin-logo p {
+      font-size: 0.875rem;
+      opacity: 0.8;
+    }
+
+    .admin-nav {
+      padding: 1rem 0;
+    }
+
+    .nav-section-title {
+      padding: 1rem 1.5rem 0.5rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      opacity: 0.6;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 0.875rem 1.5rem;
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      transition: all 0.3s;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border-left-color: var(--secondary);
+    }
+
+    .nav-item.active {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border-left-color: var(--secondary);
+    }
+
+    .nav-item i {
+      width: 20px;
+      margin-right: 0.875rem;
+      font-size: 1.1rem;
+    }
+
+    .nav-item .badge {
+      margin-left: auto;
+      background: var(--danger);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .admin-main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      min-height: 100vh;
+    }
+
+    .admin-header {
+      background: white;
+      padding: 1.5rem 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-left h1 {
+      font-size: 1.75rem;
+      color: var(--dark);
+      margin-bottom: 0.25rem;
+    }
+
+    .header-left p {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .admin-user {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 1rem;
+      background: var(--light);
+      border-radius: 50px;
+    }
+
+    .admin-user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    .admin-user-info h3 {
+      font-size: 0.875rem;
+      color: var(--dark);
+      margin-bottom: 0.125rem;
+    }
+
+    .admin-user-info p {
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    .admin-content {
+      padding: 2rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: white;
+    }
+
+    .stat-icon.primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+    .stat-icon.success { background: linear-gradient(135deg, #10b981, #059669); }
+    .stat-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .stat-icon.info { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .stat-icon.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+    .stat-details {
+      flex: 1;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--dark);
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-change {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .section-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .section-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #d1d5db;
+      color: #6b7280;
+    }
+
+    .btn-outline:hover {
+      background: var(--light);
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table thead {
+      background: var(--light);
+    }
+
+    .data-table th {
+      padding: 1rem 1.5rem;
+      text-align: left;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+    }
+
+    .data-table td {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .data-table tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    .status-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-confirmed {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .status-completed {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-cancelled {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .user-avatar {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+
+    .user-info h4 {
+      font-size: 0.875rem;
+      color: var(--dark);
+      margin-bottom: 0.125rem;
+    }
+
+    .user-info p {
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      padding: 0.375rem 0.75rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.3s;
+    }
+
+    .action-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #6b7280;
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      background: #d1fae5;
+      color: #065f46;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    @media (max-width: 768px) {
+      .admin-sidebar {
+        transform: translateX(-100%);
+      }
+
+      .admin-main {
+        margin-left: 0;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="userData" data-user-id="<%= user.id %>" data-user-role="<%= user.role %>" style="display: none;"></div>
+
+  <div class="admin-container">
+    <%- include('./partials/sidebar', { active: 'dashboard', stats: stats }) %>
+
+    <main class="admin-main">
+      <header class="admin-header">
+        <div class="header-left">
+          <h1>Dashboard Overview</h1>
+          <p>Welcome back, <%= user.name %>! Here's what's happening today.</p>
+        </div>
+        <div class="header-right">
+          <div class="admin-user">
+            <div class="admin-user-avatar">AD</div>
+            <div class="admin-user-info">
+              <h3><%= user.name %></h3>
+              <p>Administrator</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="admin-content">
+        <div style="margin-bottom: 1.5rem;">
+          <span class="live-indicator">
+            <span class="live-dot"></span>
+            Real-time Updates Active
+          </span>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon primary">
+              <i class="fas fa-concierge-bell"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value"><%= stats.totalServices %></div>
+              <div class="stat-label">Total Services</div>
+              <div class="stat-change">
+                <i class="fas fa-arrow-up"></i> Active
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon info">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value" id="statTotalBookings"><%= stats.totalBookings %></div>
+              <div class="stat-label">Total Bookings</div>
+              <div class="stat-change">
+                <i class="fas fa-arrow-up"></i> +12% this month
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon success">
+              <i class="fas fa-rupee-sign"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value">₹<%= Math.floor(stats.totalRevenue/1000) %>K</div>
+              <div class="stat-label">Total Revenue</div>
+              <div class="stat-change">
+                <i class="fas fa-arrow-up"></i> +15% this month
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon warning">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value"><%= stats.totalCustomers %></div>
+              <div class="stat-label">Customers</div>
+              <div class="stat-change">
+                <i class="fas fa-user-plus"></i> <%= stats.totalProfessionals %> Professionals
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+          <div class="stat-card">
+            <div class="stat-icon warning">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value" id="statPending"><%= stats.pendingBookings %></div>
+              <div class="stat-label">Pending</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon info">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value" id="statConfirmed"><%= stats.confirmedBookings %></div>
+              <div class="stat-label">Confirmed</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon success">
+              <i class="fas fa-check-double"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value" id="statCompleted"><%= stats.completedCount %></div>
+              <div class="stat-label">Completed</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon danger">
+              <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value" id="statCancelled"><%= stats.cancelledCount %></div>
+              <div class="stat-label">Cancelled</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fas fa-calendar-alt"></i>
+              Recent Bookings
+            </h2>
+            <div class="section-actions">
+              <button class="btn btn-outline" onclick="refreshBookings()">
+                <i class="fas fa-sync-alt"></i> Refresh
+              </button>
+              <a href="/admin/bookings" class="btn btn-primary">
+                <i class="fas fa-eye"></i> View All
+              </a>
+            </div>
+          </div>
+
+          <% if (recentBookings.length > 0) { %>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Booking ID</th>
+                  <th>Customer</th>
+                  <th>Service</th>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="bookingsTableBody">
+                <% recentBookings.forEach(booking => { %>
+                  <tr id="booking-<%= booking._id %>">
+                    <td><strong>#<%= booking._id.toString().slice(-6).toUpperCase() %></strong></td>
+                    <td>
+                      <div class="user-cell">
+                        <div class="user-avatar"><%= booking.customer.name.charAt(0) %></div>
+                        <div class="user-info">
+                          <h4><%= booking.customer.name %></h4>
+                          <p><%= booking.customer.email %></p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <strong><%= booking.service.name %></strong>
+                      <br>
+                      <small style="color: #6b7280;"><%= booking.service.category %></small>
+                    </td>
+                    <td><%= new Date(booking.scheduledDate).toLocaleDateString('en-IN') %></td>
+                    <td><strong>₹<%= booking.totalAmount %></strong></td>
+                    <td>
+                      <span class="status-badge status-<%= booking.status %>">
+                        <%= booking.status %>
+                      </span>
+                    </td>
+                    <td>
+                      <div class="action-buttons">
+                        <button class="action-btn" style="background: #3b82f6; color: white;" title="View Details">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn" style="background: #ef4444; color: white;" onclick="deleteBooking('<%= booking._id %>')" title="Delete">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <div class="empty-state">
+              <i class="fas fa-calendar-times"></i>
+              <h3>No bookings yet</h3>
+              <p>Bookings will appear here once customers start booking services.</p>
+            </div>
+          <% } %>
+        </div>
+
+        <% if (topServices && topServices.length > 0) { %>
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="fas fa-star"></i>
+                Top Services
+              </h2>
+            </div>
+
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Service</th>
+                  <th>Category</th>
+                  <th>Bookings</th>
+                  <th>Revenue</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% topServices.forEach(item => { %>
+                  <tr>
+                    <td><strong><%= item.serviceInfo.name %></strong></td>
+                    <td><%= item.serviceInfo.category %></td>
+                    <td><strong><%= item.count %></strong> bookings</td>
+                    <td><strong>₹<%= item.revenue.toLocaleString('en-IN') %></strong></td>
+                    <td>
+                      <span class="status-badge status-completed">
+                        <i class="fas fa-fire"></i> Popular
+                      </span>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </main>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const userId = document.getElementById('userData').dataset.userId;
+
+    socket.emit('join-user', userId);
+    console.log('✅ Admin connected to real-time updates');
+
+    socket.on('new-booking-notification', (data) => {
+      console.log('New booking received:', data);
+      refreshStats();
+      setTimeout(() => location.reload(), 1500);
+    });
+
+    socket.on('status-update', (data) => {
+      console.log('Booking status updated:', data);
+      refreshStats();
+      const row = document.getElementById(`booking-${data.bookingId}`);
+      if (row) {
+        const statusBadge = row.querySelector('.status-badge');
+        if (statusBadge) {
+          statusBadge.className = `status-badge status-${data.status}`;
+          statusBadge.textContent = data.status;
+        }
+      }
+    });
+
+    function refreshStats() {
+      fetch('/admin/api/stats')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById('statTotalBookings').textContent = data.stats.totalBookings;
+            document.getElementById('statPending').textContent = data.stats.pendingBookings;
+            document.getElementById('statConfirmed').textContent = data.stats.confirmedBookings;
+          }
+        })
+        .catch(err => console.error('Stats refresh error:', err));
+    }
+
+    function refreshBookings() {
+      location.reload();
+    }
+
+    function deleteBooking(bookingId) {
+      if (!confirm('Are you sure you want to delete this booking?')) return;
+
+      fetch(`/admin/api/bookings/${bookingId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('Booking deleted successfully');
+          document.getElementById(`booking-${bookingId}`).remove();
+          refreshStats();
+        } else {
+          alert('Failed to delete booking');
+        }
+      })
+      .catch(err => {
+        console.error('Delete error:', err);
+        alert('Failed to delete booking');
+      });
+    }
+
+    setInterval(refreshStats, 30000);
+  </script>
+</body>
+</html>

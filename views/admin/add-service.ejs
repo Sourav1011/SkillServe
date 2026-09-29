@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+  
+  <% if (error) { %>
+    <div class="alert alert-error"><%= error %></div>
+  <% } %>
+  
+  <div class="container">
+    <div class="page-header">
+      <h1>Add New Service</h1>
+    </div>
+    
+    <form action="/admin/services/add" method="POST" enctype="multipart/form-data" class="form-container">
+      <div class="form-group">
+        <label for="name">Service Name</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="category">Category</label>
+        <select id="category" name="category" required>
+          <option value="Home Cleaning">Home Cleaning</option>
+          <option value="Salon">Salon</option>
+          <option value="Appliance Repair">Appliance Repair</option>
+          <option value="Painting">Painting</option>
+          <option value="Plumbing">Plumbing</option>
+          <option value="Electrical">Electrical</option>
+          <option value="Carpentry">Carpentry</option>
+          <option value="Pest Control">Pest Control</option>
+          <option value="AC Repair">AC Repair</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="4" required></textarea>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="price">Price (₹)</label>
+          <input type="number" id="price" name="price" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="duration">Duration (minutes)</label>
+          <input type="number" id="duration" name="duration" required>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="features">Features (comma separated)</label>
+        <input type="text" id="features" name="features" placeholder="e.g., Tool included, 30 day warranty">
+      </div>
+      
+      <div class="form-group">
+        <label for="image">Service Image</label>
+        <input type="file" id="image" name="image" accept="image/*">
+      </div>
+      
+      <div class="form-actions">
+        <a href="/admin/services" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary">Add Service</button>
+      </div>
+    </form>
+  </div>
+  
+  <%- include('../partials/footer') %>
+  
+  <script src="/js/main.js"></script>
+</body>
+</html>
